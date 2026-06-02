@@ -54,7 +54,7 @@ get_agent_config_file() {
     case $agent in
         claude-code) echo "$HOME/.claude/CLAUDE.md" ;;
         codex)       echo "$HOME/.codex/AGENTS.md" ;;
-        cursor)      echo "$HOME/.cursor/rules" ;;
+        cursor)      echo "$HOME/.cursor/rules/security-dev-skills.mdc" ;;
         opencode)    echo "$HOME/.opencode/AGENTS.md" ;;
         windsurf)    echo "$HOME/.windsurf/rules" ;;
         aider)       echo "$HOME/.aider.conf.yml" ;;
@@ -146,9 +146,8 @@ configure_agent_rules() {
         return 1
     fi
 
-    if [ ! -f "$config_file" ]; then
-        mkdir -p "$(dirname "$config_file")"
-    fi
+    # 确保目录存在
+    mkdir -p "$(dirname "$config_file")"
 
     # 检查是否已配置
     if [ -f "$config_file" ] && grep -q "security-dev-skills" "$config_file" 2>/dev/null; then
@@ -163,6 +162,33 @@ configure_agent_rules() {
 
 # Security Dev Skills
 @~/.security-dev-skills/SKILL.md
+EOF
+            ;;
+        cursor)
+            # Cursor 使用 .mdc 格式
+            cat > "$config_file" << 'EOF'
+---
+description: Security Dev Skills - 标准化开发流程
+globs:
+---
+
+# Security Dev Skills
+
+参考 ~/.security-dev-skills/SKILL.md 中的开发流程。
+
+## 开发流程
+
+Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
+
+每个阶段有明确的完成标准，不能跳过。
+
+## 核心 Skill
+
+- 编排器：~/.security-dev-skills/workflow/develop.feature.md
+- 回顾：~/.security-dev-skills/workflow/retrospective.md
+- 文档同步：~/.security-dev-skills/docs/sync.md
+- 测试策略：~/.security-dev-skills/testing/strategy.md
+- 功能验证：~/.security-dev-skills/testing/verify.md
 EOF
             ;;
         aider)
