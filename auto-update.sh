@@ -11,7 +11,7 @@
 set -e
 
 # 配置
-SKILL_DIR="$HOME/.claude/skills/security-dev-skills"
+SKILL_DIR="$HOME/.security-dev-skills"
 LOG_FILE="$HOME/.cache/security-dev-skills/update.log"
 
 # 颜色定义
@@ -95,9 +95,9 @@ do_update() {
         log_success "更新成功: $CURRENT_VERSION -> $NEW_VERSION"
 
         # 检查是否有新的依赖
-        if git diff "$CURRENT_VERSION" HEAD --name-only | grep -q "dependencies.yaml"; then
-            log_info "检测到依赖变更，重新安装依赖..."
-            ./install.sh --required
+        if git diff "$CURRENT_VERSION" HEAD --name-only | grep -q "DEPENDENCIES.md\|check-deps.sh"; then
+            log_info "检测到依赖变更，重新检查依赖..."
+            ./check-deps.sh --force
         fi
 
         # 显示更新日志

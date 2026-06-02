@@ -1,97 +1,78 @@
 # 依赖检查清单
 
-> 本文件供 coding agent 使用，在开始工作前检查所需依赖。
+> 本文件说明依赖检查机制，**Agent 不需要每次启动都检查依赖**。
 
-## Agent 启动时请检查以下依赖
+## 依赖检查机制
 
-如果你是一个 coding agent，在使用 Security Dev Skills 之前，请检查以下依赖是否可用。
+### 缓存机制
 
-### 必需依赖
+依赖检查结果会缓存到 `.deps-status` 文件，有效期 24 小时。
 
-| 依赖 | 检查命令 | 安装方式 | 用途 |
-|------|---------|---------|------|
-| Git | `git --version` | 系统自带 | 版本控制 |
-| uv | `uv --version` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` | Python 包管理 |
-| Semble | `uv tool list \| grep semble` | `uv tool install semble` | 代码搜索 MCP |
-| CodeGraph | `which codegraph` | `npm install -g codegraph` | 代码知识图谱 MCP |
+```
+首次安装 → 检查依赖 → 写入缓存
+    ↓
+Agent 启动 → 读取缓存 → 缓存有效 → 跳过检查
+    ↓
+更新 skill → 检查依赖 → 更新缓存
+```
 
-### 可选依赖
+### 何时检查
 
-| 依赖 | 检查命令 | 安装方式 | 用途 |
-|------|---------|---------|------|
-| Node.js | `node --version` | https://nodejs.org | 运行部分 MCP |
-| npm | `npm --version` | 随 Node.js 安装 | 安装 npm 包 |
-| Docker | `docker --version` | https://docker.com | 容器化 |
-| Context7 | `npm list -g @upstash/context7-mcp` | `npm install -g @upstash/context7-mcp` | 文档查询 MCP |
-| Playwright | `npm list -g @anthropic-ai/mcp-playwright` | `npm install -g @anthropic-ai/mcp-playwright` | 浏览器 MCP |
+| 场景 | 是否检查 | 说明 |
+|------|---------|------|
+| 首次安装 | ✓ | `./install.sh` 自动检查 |
+| 更新 skill | ✓ | `./auto-update.sh` 检测到依赖变更时检查 |
+| Agent 启动 | ✗ | 读取缓存，不重新检查 |
+| 缓存过期（24h） | ✓ | 下次使用时重新检查 |
 
-## 检查流程
-
-Agent 启动时，执行以下检查：
+### 手动检查
 
 ```bash
-# 1. 检查必需依赖
-check_required() {
-    local missing=()
+# 查看缓存状态
+./check-deps.sh --status
 
-    # Git
-    if ! command -v git &>/dev/null; then
-        missing+=("Git")
-    fi
-
-    # uv
-    if ! command -v uv &>/dev/null; then
-        missing+=("uv")
-    fi
-
-    # Semble
-    if ! uv tool list 2>/dev/null | grep -q semble; then
-        missing+=("Semble")
-    fi
-
-    # CodeGraph
-    if ! command -v codegraph &>/dev/null; then
-        missing+=("CodeGraph")
-    fi
-
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "缺少以下必需依赖："
-        for dep in "${missing[@]}"; do
-            echo "  - $dep"
-        done
-        return 1
-    fi
-
-    echo "所有必需依赖已安装"
-    return 0
-}
-
-# 2. 检查可选依赖
-check_optional() {
-    local missing=()
-
-    # Node.js
-    if ! command -v node &>/dev/null; then
-        missing+=("Node.js")
-    fi
-
-    # Docker
-    if ! command -v docker &>/dev/null; then
-        missing+=("Docker")
-    fi
-
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "以下可选依赖未安装（不影响核心功能）："
-        for dep in "${missing[@]}"; do
-            echo "  - $dep"
-        done
-    fi
-}
+# 强制重新检查
+./check-deps.sh --force
 ```
+
+## Agent 读取缓存
+
+Agent 启动时，读取 `.deps-status` 文件：
+
+```bash
+# 检查缓存是否存在
+if [ -f ~/.security-dev-skills/.deps-status ]; then
+    # 读取缺失的必需依赖
+    missing=$(grep "^missing_required=" ~/.security-dev-skills/.deps-status | cut -d= -f2)
+    
+    if [ -n "$missing" ]; then
+        echo "⚠️ 缺少以下依赖："
+        # 解析并提示...
+    fi
+fi
+```
+
+## 必需依赖
+
+| 依赖 | 安装方式 | 用途 |
+|------|---------|------|
+| Git | 系统自带 | 版本控制 |
+| uv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` | Python 包管理 |
+| Semble | `uv tool install semble` | 代码搜索 MCP |
+| CodeGraph | `npm install -g codegraph` | 代码知识图谱 MCP |
+
+## 可选依赖
+
+| 依赖 | 安装方式 | 用途 |
+|------|---------|------|
+| Node.js | https://nodejs.org | 运行部分 MCP |
+| Docker | https://docker.com | 容器化 |
+| Context7 | `npm install -g @upstash/context7-mcp` | 文档查询 MCP |
+| Playwright | `npm install -g @anthropic-ai/mcp-playwright` | 浏览器 MCP |
 
 ## 提示用户
 
-如果发现缺失依赖，提示用户：
+如果缓存显示缺失依赖，提示用户：
 
 ```
 ⚠️ 缺少以下依赖：

@@ -324,6 +324,11 @@ main() {
             setup_agents "$target_agent"
             echo ""
 
+            # 首次安装时检查依赖
+            log_info "检查依赖..."
+            "$SKILL_INSTALL_DIR/check-deps.sh" --force
+            echo ""
+
             echo "=========================================="
             echo "  安装完成！"
             echo "=========================================="
@@ -331,14 +336,13 @@ main() {
 
             log_info "下一步："
             echo "  1. 重启你的 Coding Agent"
-            echo "  2. Agent 会自动检查依赖并提示安装"
-            echo "  3. 开始使用：阅读 SKILL.md"
+            echo "  2. 开始使用：阅读 SKILL.md"
             echo ""
 
             log_info "依赖说明："
-            echo "  Agent 启动时会检查所需依赖"
-            echo "  如有缺失，会提示你手动安装"
-            echo "  详见：~/.security-dev-skills/DEPENDENCIES.md"
+            echo "  依赖状态已缓存，Agent 无需每次检查"
+            echo "  更新时会自动重新检查：./install.sh --update"
+            echo "  手动检查：./check-deps.sh"
             echo ""
             ;;
     esac
