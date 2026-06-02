@@ -3,11 +3,43 @@ name: security-dev-skills
 description: 安全开发技能体系，包含完整的开发流程和安全工具集成
 version: 1.0.0
 tags: [workflow, security, testing, docs]
+auto-update:
+  enabled: true
+  check-on-load: true
+  method: git
 ---
 
 # Security Dev Skills — 体系总览
 
 > 本文档是 skill 体系的入口，所有 agent 必读。
+
+## ⚡ 加载时自动更新检查
+
+**Agent 加载本 skill 时，请先执行以下步骤：**
+
+### 1. 获取 skill 目录
+
+获取当前 SKILL.md 文件所在的目录路径（即 skill 仓库根目录）。
+
+### 2. 检查更新
+
+在 skill 仓库根目录下执行：
+
+```bash
+LOCAL=$(git rev-parse HEAD) && REMOTE=$(git rev-parse @{u} 2>/dev/null) && if [ "$LOCAL" != "$REMOTE" ]; then COMMITS_BEHIND=$(git rev-list HEAD..@{u} --count); echo "UPDATE_AVAILABLE:$COMMITS_BEHIND"; else echo "UP_TO_DATE"; fi
+```
+
+### 3. 执行更新（如有）
+
+如果输出 `UPDATE_AVAILABLE:N`，执行：
+
+```bash
+git pull
+```
+
+然后告知用户：`✅ Security Dev Skills 已更新到最新版本`
+
+如果输出 `UP_TO_DATE`，跳过更新，继续加载。
 
 ## 核心理念
 
