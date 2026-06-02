@@ -11,9 +11,9 @@
 ## 开发流程
 
 ```
-Research → Design → Implement → Doc-Sync → Verify → Release
-   │          │          │           │          │         │
-安全调研    设计文档    编码+测试    文档同步    用户验证    发布部署
+Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
+   │          │          │           │          │         │          │
+安全调研    设计文档    编码+测试    文档同步    用户验证    发布部署    回顾优化
 ```
 
 ### 阻断条件
@@ -80,6 +80,7 @@ outputs:                      # 可选，输出契约
 | Skill | 文件 | 用途 |
 |-------|------|------|
 | develop.feature | `workflow/develop.feature.md` | 完整需求开发流程 |
+| retrospective | `workflow/retrospective.md` | 开发完成后的回顾与优化 |
 
 ### 文档
 

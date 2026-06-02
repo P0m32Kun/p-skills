@@ -7,6 +7,18 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-02
+
+### Added
+- 回顾环节 skill：workflow/retrospective.md
+  - 收集问题（工具失败、报错、踩坑、skill 评估）
+  - 分析根因
+  - 量化影响（时间、token）
+  - 输出优化建议
+- 更新 workflow/develop.feature.md 增加 Retrospective 阶段
+- 更新 SKILL.md 增加 retrospective skill 索引
+- 参考优秀 skill 仓库：superpowers, gstack, andrej-karpathy-skills, mattpocock/skills
+
 ## [0.2.0] - 2026-06-02
 
 ### Added

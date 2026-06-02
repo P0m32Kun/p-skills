@@ -23,9 +23,9 @@ outputs:
 ## 流程总览
 
 ```
-Research → Design → Implement → Doc-Sync → Verify → Release
-   │          │          │           │          │         │
-安全调研    设计文档    编码+测试    文档同步    用户验证    发布部署
+Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
+   │          │          │           │          │         │          │
+安全调研    设计文档    编码+测试    文档同步    用户验证    发布部署    回顾优化
 ```
 
 ## 阶段详情
@@ -159,6 +159,31 @@ Research → Design → Implement → Doc-Sync → Verify → Release
 3. 推送到镜像仓库
 4. 更新 CHANGELOG
 5. 创建 Git tag + GitHub Release
+
+---
+
+### 阶段 7：Retrospective（回顾）
+
+**目标**：回顾开发过程，持续优化 skill 体系
+
+**使用的 Skill**：
+- `workflow/retrospective.md` — 开发回顾与优化
+
+**输入**：开发过程记录
+
+**输出**：回顾报告 + 优化建议
+
+**流程**：
+1. 收集问题（工具失败、报错、踩坑、skill 评估）
+2. 分析根因
+3. 量化影响（时间、token）
+4. 输出优化建议
+5. 更新 skill（如需要）
+
+**何时执行**：
+- 每个需求开发完成后
+- 开发过程中遇到重大阻碍时
+- 定期回顾（如每周）
 
 ## 阶段状态管理
 
