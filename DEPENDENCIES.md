@@ -60,14 +60,14 @@ fi
 | uv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` | Python 包管理 |
 | Semble | `uv tool install semble` | 代码搜索 MCP |
 | CodeGraph | `npm install -g @colbymchenry/codegraph` | 代码知识图谱 MCP |
-| AgentMemory | 见 GitHub 仓库 | 持久记忆管理 MCP |
 
 ## 可选依赖
 
 | 依赖 | 安装方式 | 用途 |
 |------|---------|------|
+| AgentMemory | 见 GitHub 仓库 | 持久记忆管理 MCP |
 | Node.js | https://nodejs.org | 运行部分 MCP |
-| Docker | https://docker.com | 容器化 |
+| Docker | https://docker.com | 容器化（仅部署场景需要） |
 | Context7 | `npm install -g @upstash/context7-mcp` | 文档查询 MCP |
 | Playwright | `npm install -g @anthropic-ai/mcp-playwright` | 浏览器 MCP |
 
@@ -126,7 +126,7 @@ which codegraph
 
 ---
 
-### AgentMemory（必需）
+### AgentMemory（可选）
 
 **用途**：持久记忆管理，支持会话历史、知识保存、提交追溯等
 

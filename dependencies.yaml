@@ -30,7 +30,7 @@ mcp_servers:
     type: mcp
     description: 代码知识图谱，提供符号搜索、调用关系、影响分析
     source:
-      github: "https://github.com/ricocf/codegraph"
+      github: "https://github.com/colbymchenry/codegraph"
     install:
       command: "npm"
       args: ["install", "-g", "codegraph"]
@@ -54,6 +54,17 @@ mcp_servers:
       args: ["--from", "semble[mcp]", "semble"]
     required: true
     tags: [code-search, search, token-saving]
+
+  - name: agentmemory
+    type: mcp
+    description: 持久记忆管理，支持会话历史、知识保存、提交追溯
+    source:
+      github: "https://github.com/rohitg00/agentmemory"
+    config:
+      command: "npx"
+      args: ["-y", "agentmemory"]
+    required: false
+    tags: [memory, session, history]
 
   - name: context7
     type: mcp

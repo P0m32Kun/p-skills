@@ -7,6 +7,36 @@
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-06-02
+
+### Added
+- `workflow/brainstorming.md` — 需求讨论与设计探索 skill（借鉴 superpowers）
+- `workflow/writing-plans.md` — 实施计划编写 skill（借鉴 superpowers）
+- `testing/tdd.md` — 测试驱动开发 skill（借鉴 mattpocock/skills）
+- `integrations/README.md` — 集成 skills 总览（使用场景与流程联动）
+- `release/deploy.md` — 多场景发布支持（npm/Python/二进制/通用 Git tag）
+- `.github/workflows/lint.yml` — CI 工作流（frontmatter 校验、Markdown lint、ShellCheck、YAML lint）
+- `scripts/validate-skills.sh` — Skill 文件 frontmatter 校验脚本
+- `.markdownlint.json` — Markdown lint 配置
+- `.yamllint.yml` — YAML lint 配置
+
+### Changed
+- `workflow/develop.feature.md` — 移除对外部 skill 的引用，改用自建 skill
+- `SKILL.md` — 更新 skill 索引，添加 brainstorming、writing-plans、tdd
+- 依赖状态统一：AgentMemory 改为可选，Docker 改为仅部署场景需要
+- CodeGraph GitHub 地址统一修正
+- `dependencies.yaml` — 补充 AgentMemory 条目
+- `.gitignore` — 添加 `.deps-status` 缓存文件
+- `DESIGN.md` — 状态更新为“已完成”
+- `docs/best-practices.md` — 移除与 analysis.md 重复的“学习来源”段
+- `docs/analysis.md` — 更新完成状态
+- `SKILL.md` — 增加 allowed-tools 字段说明、auto-update 错误处理
+- `release/deploy.md` — 增加 npm/Python/二进制发布场景
+
+### Fixed
+- 版本号同步：SKILL.md 改为 0.9.0
+- 消除所有对 ricocf/codegraph 的错误引用
+
 ## [0.9.0] - 2026-06-02
 
 ### Added

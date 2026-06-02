@@ -34,3 +34,6 @@ build/
 .env.local
 *.pem
 *.key
+
+# Deps cache
+.deps-status

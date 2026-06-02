@@ -1,15 +1,7 @@
 # 优秀 Skill 设计模式
 
 > 从优秀 skill 仓库吸收的设计理念，已集成到我们的 skill 体系中。
-
-## 学习来源
-
-| 仓库 | 学到的理念 |
-|------|-----------|
-| [superpowers](https://github.com/obra/superpowers) | HARD-GATE 阻断、Anti-Patterns、详细 Checklist |
-| [gstack](https://github.com/garrytan/gstack) | 模板化、版本管理、自动化 preamble |
-| [karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) | 行为准则、防 LLM 错误、简洁有力 |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | 分类清晰、渐进式披露、CONTEXT.md |
+> 原始调研记录详见 `docs/analysis.md`。
 
 ## 已集成的设计模式
 

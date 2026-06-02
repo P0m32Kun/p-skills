@@ -75,8 +75,7 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 **目标**：输出详细的设计文档（spec）
 
 **使用的 Skill**：
-- superpowers 的 `brainstorming` — 设计讨论
-- superpowers 的 `writing-plans` — 实施计划
+- `workflow/brainstorming.md` — 需求讨论与设计探索
 - `docs/templates/feature.md` — 功能文档模板
 - `docs/templates/architecture.md` — 架构文档模板
 
@@ -94,10 +93,10 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 </HARD-GATE>
 
 **流程**：
-1. 使用 brainstorming 进行设计讨论
-2. 使用 writing-plans 制定实施计划
-3. 按模板输出设计文档
-4. 评审设计文档
+1. 使用 brainstorming 进行设计讨论（澄清需求、探索方案、增量验证）
+2. 按模板输出设计文档
+3. 设计自检（占位符、一致性、范围、歧义）
+4. 用户评审设计文档
 
 **Anti-Patterns**：
 - ✗ "这个太简单了，不需要设计"
@@ -111,8 +110,9 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 **目标**：编写可运行的代码 + 测试
 
 **使用的 Skill**：
+- `workflow/writing-plans.md` — 实施计划编写
+- `testing/tdd.md` — 测试驱动开发
 - `testing/strategy.md` — 测试策略选择
-- mattpocock 的 `tdd` — 测试驱动开发
 - `testing/e2e-write.md` — E2E 测试编写
 
 **输入**：设计文档
@@ -131,11 +131,12 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 </HARD-GATE>
 
 **流程**：
-1. 使用 test-strategy 制定测试计划
-2. 使用 TDD 进行开发（红-绿-重构）
-3. 编写单元测试和集成测试
-4. 编写 E2E 测试（如需要）
-5. 确保所有测试通过
+1. 使用 writing-plans 编写实施计划
+2. 使用 test-strategy 制定测试计划
+3. 使用 TDD 进行开发（红-绿-重构，垂直切片）
+4. 编写单元测试和集成测试
+5. 编写 E2E 测试（如需要）
+6. 确保所有测试通过
 
 **Anti-Patterns**：
 - ✗ 先写代码再补测试

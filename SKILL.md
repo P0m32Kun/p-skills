@@ -1,7 +1,7 @@
 ---
 name: security-dev-skills
 description: 安全开发技能体系，包含完整的开发流程和安全工具集成
-version: 1.0.0
+version: 0.9.0
 tags: [workflow, security, testing, docs]
 auto-update:
   enabled: true
@@ -26,7 +26,21 @@ auto-update:
 在 skill 仓库根目录下执行：
 
 ```bash
-LOCAL=$(git rev-parse HEAD) && REMOTE=$(git rev-parse @{u} 2>/dev/null) && if [ "$LOCAL" != "$REMOTE" ]; then COMMITS_BEHIND=$(git rev-list HEAD..@{u} --count); echo "UPDATE_AVAILABLE:$COMMITS_BEHIND"; else echo "UP_TO_DATE"; fi
+# 检查是否为 git 仓库
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  echo "SKIP_UPDATE:not_a_git_repo"
+  exit 0
+fi
+
+LOCAL=$(git rev-parse HEAD 2>/dev/null) || { echo "SKIP_UPDATE:git_error"; exit 0; }
+REMOTE=$(git rev-parse @{u} 2>/dev/null) || { echo "SKIP_UPDATE:no_upstream"; exit 0; }
+
+if [ "$LOCAL" != "$REMOTE" ]; then
+  COMMITS_BEHIND=$(git rev-list HEAD..@{u} --count 2>/dev/null) || COMMITS_BEHIND="?"
+  echo "UPDATE_AVAILABLE:$COMMITS_BEHIND"
+else
+  echo "UP_TO_DATE"
+fi
 ```
 
 ### 3. 执行更新（如有）
@@ -40,6 +54,8 @@ git pull
 然后告知用户：`✅ Security Dev Skills 已更新到最新版本`
 
 如果输出 `UP_TO_DATE`，跳过更新，继续加载。
+
+如果输出 `SKIP_UPDATE:*`，说明环境不支持自动更新（非 git 仓库、无 upstream 等），跳过更新，继续加载。
 
 ## 核心理念
 
@@ -96,6 +112,10 @@ version: 1.0.0                # 必填，语义化版本
 tags: [tag1, tag2]            # 可选
 triggers:                     # 可选，触发条件
   - "关键词或意图描述"
+allowed-tools:                # 可选，限制可用工具
+  - Bash
+  - Read
+  - Edit
 inputs:                       # 可选，输入契约
   - name: param_name
     description: 参数说明
@@ -132,6 +152,8 @@ outputs:                      # 可选，输出契约
 
 | Skill | 文件 | 用途 |
 |-------|------|------|
+| brainstorming | `workflow/brainstorming.md` | 需求讨论与设计探索 |
+| writing-plans | `workflow/writing-plans.md` | 实施计划编写 |
 | develop.feature | `workflow/develop.feature.md` | 完整需求开发流程 |
 | retrospective | `workflow/retrospective.md` | 开发完成后的回顾与优化 |
 
@@ -146,6 +168,7 @@ outputs:                      # 可选，输出契约
 
 | Skill | 文件 | 用途 |
 |-------|------|------|
+| tdd | `testing/tdd.md` | 测试驱动开发（红-绿-重构） |
 | test-strategy | `testing/strategy.md` | 根据变更类型选择测试策略 |
 | e2e-write | `testing/e2e-write.md` | 编写 E2E 测试 |
 | verify | `testing/verify.md` | 用户视角功能验证 |
@@ -199,7 +222,7 @@ outputs:                      # 可选，输出契约
 
 | 工具 | GitHub | 用途 |
 |------|--------|------|
-| AgentMemory | https://github.com/rohitg00/agentmemory | 持久记忆管理 |
+| AgentMemory | https://github.com/rohitg00/agentmemory | 持久记忆管理（可选） |
 | CodeGraph | https://github.com/colbymchenry/codegraph | 代码知识图谱 |
 | Semble | https://github.com/MinishLab/semble | 语义代码搜索（节省 98% token） |
 
@@ -223,7 +246,7 @@ outputs:                      # 可选，输出契约
 | 依赖 | 用途 | 安装方式 |
 |------|------|---------|
 | Node.js | 运行部分 MCP | https://nodejs.org |
-| Docker | 容器化 | https://docker.com |
+| Docker | 容器化（仅部署场景需要） | https://docker.com |
 | Context7 | 文档查询 MCP | `npm install -g @upstash/context7-mcp` |
 | Playwright | 浏览器 MCP | `npm install -g @anthropic-ai/mcp-playwright` |
 

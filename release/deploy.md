@@ -1,12 +1,14 @@
 ---
 name: deploy
-description: 发布部署流程
-version: 1.0.0
-tags: [release, deploy, docker, ci]
+description: 发布部署流程（支持容器化、npm、Python、二进制等场景）
+version: 1.1.0
+tags: [release, deploy, docker, npm, pypi, ci]
 triggers:
   - "发布部署"
   - "版本发布"
   - "Docker 镜像"
+  - "npm publish"
+  - "pip publish"
 inputs:
   - name: version_type
     description: 版本类型（PATCH/MINOR/MAJOR）
@@ -27,9 +29,28 @@ outputs:
 - 用户验证通过（Verify 阶段完成）
 - 代码已合并到主分支
 
+## 项目类型
+
+根据项目类型选择发布场景：
+
+```
+项目类型？
+├── 容器化应用（Web 服务、API）→ Docker 发布
+├── npm 包（前端库、CLI 工具）→ npm publish
+├── Python 包（库、CLI 工具）→ PyPI 发布
+├── 二进制程序（Go/Rust CLI）→ Binary 发布
+└── 其他 → 通用 Git tag 流程
+```
+
+以下按场景分别说明。
+
 ## 流程
 
-### 1. 版本号确定
+### 场景 A：容器化应用发布
+
+适用于 Web 服务、API 等容器化项目。
+
+#### 1. 版本号确定
 
 遵循 [语义化版本](https://semver.org/lang/zh-CN/)：
 
@@ -236,10 +257,241 @@ jobs:
           generate_release_notes: true
 ```
 
+---
+
+## 场景 B：npm 包发布
+
+适用于前端库、Node.js CLI 工具、npm 包。
+
+### 发布流程
+
+```bash
+# 1. 更新版本号
+npm version patch  # 或 minor, major
+
+# 2. 构建
+npm run build
+
+# 3. 登录（首次）
+npm login
+
+# 4. 发布
+npm publish
+
+# 5. 推送 tag
+git push --follow-tags
+```
+
+### package.json 配置
+
+```json
+{
+  "name": "@scope/package-name",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  }
+}
+```
+
+### GitHub Actions 自动化
+
+```yaml
+# .github/workflows/npm-publish.yml
+name: npm Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+---
+
+## 场景 C：Python 包发布
+
+适用于 Python 库、CLI 工具。
+
+### 发布流程
+
+```bash
+# 1. 更新版本号（pyproject.toml）
+# 手动修改或使用 bump2version
+
+# 2. 构建
+uv build
+# 或
+python -m build
+
+# 3. 发布到 PyPI
+uv publish
+# 或
+twine upload dist/*
+
+# 4. 推送 tag
+git push --follow-tags
+```
+
+### pyproject.toml 配置
+
+```toml
+[project]
+name = "package-name"
+version = "1.0.0"
+description = "包描述"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+```
+
+### GitHub Actions 自动化
+
+```yaml
+# .github/workflows/pypi-publish.yml
+name: PyPI Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+```
+
+---
+
+## 场景 D：二进制发布
+
+适用于 Go、Rust 编写的 CLI 工具。
+
+### Go 二进制
+
+```bash
+# 1. 构建多平台
+GOOS=linux GOARCH=amd64 go build -o myapp-linux-amd64 .
+GOOS=darwin GOARCH=arm64 go build -o myapp-darwin-arm64 .
+GOOS=windows GOARCH=amd64 go build -o myapp-windows-amd64.exe .
+
+# 2. 创建 GitHub Release 并上传
+gh release create v1.0.0 \
+  myapp-linux-amd64 \
+  myapp-darwin-arm64 \
+  myapp-windows-amd64.exe \
+  --title "Release v1.0.0" \
+  --generate-notes
+```
+
+### GoReleaser（推荐）
+
+```yaml
+# .goreleaser.yml
+version: 2
+builds:
+  - env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+```
+
+```bash
+# 安装
+go install github.com/goreleaser/goreleaser@latest
+
+# 发布
+goreleaser release --clean
+```
+
+### GitHub Actions 自动化
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+---
+
+## 场景 E：通用 Git tag 流程
+
+适用于不走上述特定流程的项目。
+
+```bash
+# 1. 更新版本号（按项目约定）
+# 2. 更新 CHANGELOG
+# 3. 提交
+git add -A && git commit -m "release: v1.0.0"
+
+# 4. 创建 tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+
+# 5. 创建 GitHub Release
+gh release create v1.0.0 --generate-notes
+```
+
 ## 完成标准
 - [ ] 版本号已确定（遵循语义化版本）
-- [ ] Docker 镜像已构建并测试
-- [ ] 镜像已推送到 ACR
+- [ ] 发布产物已构建并测试
+- [ ] 发布产物已推送到目标平台（ACR/npm/PyPI/GitHub Release）
 - [ ] CHANGELOG 已更新
 - [ ] Git tag 已创建
 - [ ] GitHub Release 已创建

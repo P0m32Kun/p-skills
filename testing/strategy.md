@@ -164,5 +164,6 @@ outputs:
 ## 参考
 - `testing/e2e-write.md` — E2E 测试编写
 - `testing/verify.md` — 用户视角功能验证
+- `testing/tdd.md` — 测试驱动开发
 - `CONTEXT.md` — 领域知识
-- [mattpocock TDD skill](https://github.com/mattpocock/skills) — 测试驱动开发
+- [mattpocock/skills](https://github.com/mattpocock/skills) — TDD 设计来源

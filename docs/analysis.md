@@ -55,10 +55,10 @@ digraph brainstorming {
 - 清晰的分支逻辑
 
 ### 我们可以学习的
-- [ ] 增加 HARD-GATE 阻断机制
-- [ ] 增加 Anti-Patterns 反模式
-- [ ] 细化 Checklist
-- [ ] 增加流程图
+- [x] 增加 HARD-GATE 阻断机制
+- [x] 增加 Anti-Patterns 反模式
+- [x] 细化 Checklist
+- [ ] 增加流程图（可选，当前用文本流程图）
 
 ---
 
@@ -111,10 +111,10 @@ gstack/
 - 可执行脚本与 skill 分离
 
 ### 我们可以学习的
-- [ ] 统一 frontmatter 格式
-- [ ] 增加 preamble 脚本（环境检查）
-- [ ] 每个 skill 一个目录
-- [ ] 增加版本管理
+- [x] 统一 frontmatter 格式
+- [ ] 增加 preamble 脚本（环境检查）— 用 check-deps.sh 替代
+- [ ] 每个 skill 一个目录 — 当前单文件结构更简洁
+- [x] 增加版本管理
 
 ---
 
@@ -166,10 +166,10 @@ Transform tasks into verifiable goals:
 - 循环直到完成
 
 ### 我们可以学习的
-- [ ] 增加行为准则（防 LLM 错误）
-- [ ] 增加反模式清单
-- [ ] 明确成功标准
-- [ ] 目标驱动执行
+- [x] 增加行为准则（防 LLM 错误）— 通过 Anti-Patterns 实现
+- [x] 增加反模式清单
+- [x] 明确成功标准
+- [x] 目标驱动执行
 
 ---
 
@@ -222,32 +222,34 @@ not implementation details.
 - 最后讲示例
 
 ### 我们可以学习的
-- [ ] 增加分类（engineering, workflow, security）
-- [ ] 增加 CONTEXT.md（领域知识）
-- [ ] 增加 handoff 能力
-- [ ] 渐进式披露（原则 → 细节 → 示例）
+- [x] 增加分类（workflow, testing, security, docs, release）
+- [x] 增加 CONTEXT.md（领域知识）
+- [ ] 增加 handoff 能力 — 通过 AgentMemory 集成实现
+- [x] 渐进式披露（原则 → 细节 → 示例）
 
 ---
 
 ## 优化计划
 
+> 以下计划大部分已完成，标注了当前状态。
+
 ### Phase 1：格式优化
-1. 统一 frontmatter 格式（增加 allowed-tools, preamble-tier）
-2. 每个 skill 一个目录（skill-name/SKILL.md）
-3. 增加版本管理
+1. [x] 统一 frontmatter 格式（name, description, version, tags, triggers）
+2. [ ] 每个 skill 一个目录（skill-name/SKILL.md）— 当前单文件结构更简洁
+3. [x] 增加版本管理
 
 ### Phase 2：内容优化
-1. 增加 HARD-GATE 阻断机制
-2. 增加 Anti-Patterns 反模式
-3. 增加行为准则（防 LLM 错误）
-4. 细化 Checklist
+1. [x] 增加 HARD-GATE 阻断机制
+2. [x] 增加 Anti-Patterns 反模式
+3. [x] 增加行为准则（防 LLM 错误）— 通过 Anti-Patterns 实现
+4. [x] 细化 Checklist
 
 ### Phase 3：结构优化
-1. 增加 CONTEXT.md（领域知识）
-2. 增加 handoff 能力
-3. 增加 preamble 脚本（环境检查）
+1. [x] 增加 CONTEXT.md（领域知识）
+2. [ ] 增加 handoff 能力 — 通过 AgentMemory 集成实现
+3. [ ] 增加 preamble 脚本（环境检查）— 用 check-deps.sh 替代
 
 ### Phase 4：流程优化
-1. 增加流程图
-2. 增加决策树
-3. 增加成功标准模板
+1. [ ] 增加流程图（可选，当前用文本流程图）
+2. [x] 增加决策树
+3. [x] 增加成功标准模板

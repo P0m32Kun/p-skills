@@ -129,11 +129,12 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 |------|------|------|------|
 | MCP | Semble | 快速代码搜索（节省 98% token） | ✓ |
 | MCP | CodeGraph | 代码知识图谱 | ✓ |
+| MCP | AgentMemory | 持久记忆管理 | — |
 | MCP | Context7 | 实时文档查询 | — |
 | MCP | Playwright | 浏览器自动化 | — |
 | MCP | Agent Browser | AI 浏览器 | — |
 | 工具 | uv | Python 包管理器 | ✓ |
-| 工具 | Docker | 容器化 | ✓ |
+| 工具 | Docker | 容器化（仅部署场景需要） | — |
 | 工具 | Git | 版本控制 | ✓ |
 
 ## 自动更新
