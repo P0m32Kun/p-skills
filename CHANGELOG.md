@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-02
+
+### Added
+- `DEPENDENCIES.md` — 依赖检查清单（供 agent 使用）
+  - Agent 启动时检查依赖
+  - 缺失依赖时提示用户安装
+
+### Changed
+- 简化 install.sh，移除依赖安装逻辑
+  - 安装脚本只负责克隆仓库和创建软链接
+  - 依赖检查交给 agent 自行完成
+- 更新 SKILL.md 增加依赖检查说明
+
 ## [0.7.0] - 2026-06-02
 
 ### Changed

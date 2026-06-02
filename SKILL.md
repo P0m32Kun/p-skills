@@ -129,47 +129,52 @@ outputs:                      # 可选，输出契约
 
 本仓库是**独立的 skill 仓库**，不依赖外部 skill。只依赖必要的工具和 MCP 服务器。
 
-### MCP 服务器
+### 必需依赖
 
-| MCP | 用途 | 必需 |
-|-----|------|------|
-| Semble | 快速代码搜索（节省 98% token） | ✓ |
-| CodeGraph | 代码知识图谱、符号搜索 | ✓ |
-| Context7 | 实时文档查询 | — |
-| Playwright | 浏览器自动化 | — |
-| Agent Browser | AI 浏览器 | — |
+| 依赖 | 用途 | 安装方式 |
+|------|------|---------|
+| Git | 版本控制 | 系统自带 |
+| uv | Python 包管理器 | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Semble | 代码搜索 MCP（节省 98% token） | `uv tool install semble` |
+| CodeGraph | 代码知识图谱 MCP | `npm install -g codegraph` |
 
-### 工具
+### 可选依赖
 
-| 工具 | 用途 | 必需 |
-|------|------|------|
-| uv | Python 包管理器 | ✓ |
-| Docker | 容器化 | ✓ |
-| Git | 版本控制 | ✓ |
+| 依赖 | 用途 | 安装方式 |
+|------|------|---------|
+| Node.js | 运行部分 MCP | https://nodejs.org |
+| Docker | 容器化 | https://docker.com |
+| Context7 | 文档查询 MCP | `npm install -g @upstash/context7-mcp` |
+| Playwright | 浏览器 MCP | `npm install -g @anthropic-ai/mcp-playwright` |
 
-### 安装依赖
+### Agent 依赖检查
 
-```bash
-# 安装所有依赖
-./install.sh
+**Agent 启动时请检查依赖**，参考 `DEPENDENCIES.md`。
 
-# 只安装必需依赖
-./install.sh --required
+如发现缺失依赖，提示用户：
 
-# 更新 skill 仓库
-./auto-update.sh
+```
+⚠️ 缺少以下依赖：
+
+必需：
+- Semble: uv tool install semble
+- CodeGraph: npm install -g codegraph
+
+可选（不影响核心功能）：
+- Docker: https://docker.com
+
+是否现在安装？(y/N)
 ```
 
-详见 `docs/dependencies.md`
+详见 `DEPENDENCIES.md`
 
 ## 使用方式
 
 ### 新需求开发
 
-1. 安装依赖：`./install.sh`
-2. 阅读 `workflow/develop.feature.md`
-3. 按流程依次执行各阶段
-4. 每个阶段使用对应的 skill
+1. 阅读 `workflow/develop.feature.md`
+2. 按流程依次执行各阶段
+3. 每个阶段使用对应的 skill
 
 ### 单独使用某个 skill
 
