@@ -9,12 +9,7 @@
 #   ./install.sh --update     # 更新 skill 仓库
 #   ./install.sh --uninstall  # 卸载
 #
-# 本脚本只负责：
-# 1. 克隆/更新仓库
-# 2. 创建软链接到各 agent 的 skill 目录
-# 3. 更新 agent 配置文件
-#
-# 依赖检查由 agent 自行完成，参考 DEPENDENCIES.md
+# 兼容 Bash 3.2+（macOS 默认版本）
 #
 
 set -e
@@ -36,30 +31,38 @@ log_success() { echo -e "${GREEN}[✓]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 log_error() { echo -e "${RED}[✗]${NC} $1"; }
 
-# 支持的 Agent 列表
-declare -A AGENTS=(
-    ["claude-code"]="$HOME/.claude/skills/security-dev-skills"
-    ["codex"]="$HOME/.codex/skills/security-dev-skills"
-    ["cursor"]="$HOME/.cursor/skills/security-dev-skills"
-    ["opencode"]="$HOME/.opencode/skills/security-dev-skills"
-    ["windsurf"]="$HOME/.windsurf/skills/security-dev-skills"
-    ["aider"]="$HOME/.aider/skills/security-dev-skills"
-    ["cline"]="$HOME/.cline/skills/security-dev-skills"
-    ["continue"]="$HOME/.continue/skills/security-dev-skills"
-    ["generic"]="$HOME/.coding-agent/skills/security-dev-skills"
-)
+# 获取 agent 的 skill 目录
+get_agent_skill_dir() {
+    local agent=$1
+    case $agent in
+        claude-code) echo "$HOME/.claude/skills/security-dev-skills" ;;
+        codex)       echo "$HOME/.codex/skills/security-dev-skills" ;;
+        cursor)      echo "$HOME/.cursor/skills/security-dev-skills" ;;
+        opencode)    echo "$HOME/.opencode/skills/security-dev-skills" ;;
+        windsurf)    echo "$HOME/.windsurf/skills/security-dev-skills" ;;
+        aider)       echo "$HOME/.aider/skills/security-dev-skills" ;;
+        cline)       echo "$HOME/.cline/skills/security-dev-skills" ;;
+        continue)    echo "$HOME/.continue/skills/security-dev-skills" ;;
+        generic)     echo "$HOME/.coding-agent/skills/security-dev-skills" ;;
+        *)           echo "" ;;
+    esac
+}
 
-# Agent 配置文件
-declare -A AGENT_CONFIGS=(
-    ["claude-code"]="$HOME/.claude/CLAUDE.md"
-    ["codex"]="$HOME/.codex/AGENTS.md"
-    ["cursor"]="$HOME/.cursor/rules"
-    ["opencode"]="$HOME/.opencode/AGENTS.md"
-    ["windsurf"]="$HOME/.windsurf/rules"
-    ["aider"]="$HOME/.aider.conf.yml"
-    ["cline"]="$HOME/.cline/rules"
-    ["continue"]="$HOME/.continue/config.yaml"
-)
+# 获取 agent 的配置文件
+get_agent_config_file() {
+    local agent=$1
+    case $agent in
+        claude-code) echo "$HOME/.claude/CLAUDE.md" ;;
+        codex)       echo "$HOME/.codex/AGENTS.md" ;;
+        cursor)      echo "$HOME/.cursor/rules" ;;
+        opencode)    echo "$HOME/.opencode/AGENTS.md" ;;
+        windsurf)    echo "$HOME/.windsurf/rules" ;;
+        aider)       echo "$HOME/.aider.conf.yml" ;;
+        cline)       echo "$HOME/.cline/rules" ;;
+        continue)    echo "$HOME/.continue/config.yaml" ;;
+        *)           echo "" ;;
+    esac
+}
 
 # 列出支持的 Agent
 list_agents() {
@@ -84,24 +87,29 @@ list_agents() {
 
 # 检测已安装的 Agent
 detect_agents() {
-    local detected=()
+    local detected=""
 
-    [ -d "$HOME/.claude" ] && detected+=("claude-code")
-    [ -d "$HOME/.codex" ] && detected+=("codex")
-    [ -d "$HOME/.cursor" ] && detected+=("cursor")
-    [ -d "$HOME/.opencode" ] && detected+=("opencode")
-    [ -d "$HOME/.windsurf" ] && detected+=("windsurf")
-    ([ -f "$HOME/.aider.conf.yml" ] || command -v aider &>/dev/null) && detected+=("aider")
-    [ -d "$HOME/.cline" ] && detected+=("cline")
-    [ -d "$HOME/.continue" ] && detected+=("continue")
+    [ -d "$HOME/.claude" ] && detected="$detected claude-code"
+    [ -d "$HOME/.codex" ] && detected="$detected codex"
+    [ -d "$HOME/.cursor" ] && detected="$detected cursor"
+    [ -d "$HOME/.opencode" ] && detected="$detected opencode"
+    [ -d "$HOME/.windsurf" ] && detected="$detected windsurf"
+    ([ -f "$HOME/.aider.conf.yml" ] || command -v aider &>/dev/null) && detected="$detected aider"
+    [ -d "$HOME/.cline" ] && detected="$detected cline"
+    [ -d "$HOME/.continue" ] && detected="$detected continue"
 
-    echo "${detected[@]}"
+    echo "$detected"
 }
 
 # 创建软链接
 create_symlink() {
     local agent=$1
-    local target_dir="${AGENTS[$agent]}"
+    local target_dir=$(get_agent_skill_dir "$agent")
+
+    if [ -z "$target_dir" ]; then
+        log_error "未知的 agent: $agent"
+        return 1
+    fi
 
     log_info "配置 $agent..."
 
@@ -132,7 +140,11 @@ create_symlink() {
 # 配置 Agent 的规则文件
 configure_agent_rules() {
     local agent=$1
-    local config_file="${AGENT_CONFIGS[$agent]}"
+    local config_file=$(get_agent_config_file "$agent")
+
+    if [ -z "$config_file" ]; then
+        return 1
+    fi
 
     if [ ! -f "$config_file" ]; then
         mkdir -p "$(dirname "$config_file")"
@@ -199,7 +211,8 @@ setup_agents() {
     local target_agent="$1"
 
     if [ -n "$target_agent" ]; then
-        if [ -z "${AGENTS[$target_agent]}" ]; then
+        local target_dir=$(get_agent_skill_dir "$target_agent")
+        if [ -z "$target_dir" ]; then
             log_error "未知的 agent: $target_agent"
             list_agents
             exit 1
@@ -210,7 +223,7 @@ setup_agents() {
         log_info "检测已安装的 Coding Agent..."
         local detected=$(detect_agents)
 
-        if [ -z "$detected" ]; then
+        if [ -z "$(echo $detected | tr -d ' ')" ]; then
             log_warn "未检测到已安装的 Coding Agent"
             log_info "创建通用目录..."
             create_symlink "generic"
@@ -228,8 +241,8 @@ uninstall() {
     log_info "卸载 Security Dev Skills..."
 
     # 删除软链接
-    for agent in "${!AGENTS[@]}"; do
-        local target_dir="${AGENTS[$agent]}"
+    for agent in claude-code codex cursor opencode windsurf aider cline continue generic; do
+        local target_dir=$(get_agent_skill_dir "$agent")
         if [ -L "$target_dir" ]; then
             rm "$target_dir"
             log_success "删除 $agent 软链接"
