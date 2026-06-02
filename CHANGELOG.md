@@ -7,6 +7,17 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-02
+
+### Changed
+- 安装脚本重构：支持自动检测 agent 并创建软链接
+  - 自动检测已安装的 Coding Agent
+  - 创建软链接到各 agent 的 skill 目录
+  - 更新 agent 配置文件
+  - 支持 `--agent` 参数指定 agent
+  - 支持 `--list-agents` 列出支持的 agent
+- 更新 README.md 反映新的安装方式
+
 ## [0.6.0] - 2026-06-02
 
 ### Added

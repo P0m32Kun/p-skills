@@ -33,42 +33,27 @@ git clone git@github.com:P0m32Kun/security-dev-skills.git ~/.security-dev-skills
 # 2. 进入目录
 cd ~/.security-dev-skills
 
-# 3. 运行安装脚本
+# 3. 运行安装脚本（自动检测已安装的 agent 并创建软链接）
 ./install.sh
-
-# 4. 配置你的 coding agent（见下方）
 ```
 
-#### 配置 Claude Code
+安装脚本会自动：
+- 检测已安装的 Coding Agent
+- 创建软链接到各 agent 的 skill 目录
+- 更新 agent 配置文件
+- 安装依赖（Semble, CodeGraph 等）
 
-在 `~/.claude/CLAUDE.md` 或项目 `CLAUDE.md` 中添加：
+#### 指定 Agent 安装
 
-```markdown
-@~/.security-dev-skills/SKILL.md
-```
+```bash
+# 只配置 Claude Code
+./install.sh --agent claude-code
 
-#### 配置 Codex / OpenCode
+# 只配置 Cursor
+./install.sh --agent cursor
 
-在项目 `AGENTS.md` 中添加：
-
-```markdown
-参考 ~/.security-dev-skills/SKILL.md 中的开发流程。
-```
-
-#### 配置 Cursor
-
-在项目 `.cursorrules` 中添加：
-
-```markdown
-参考 ~/.security-dev-skills/SKILL.md 中的开发流程。
-```
-
-#### 配置 Windsurf
-
-在项目 `.windsurfrules` 中添加：
-
-```markdown
-参考 ~/.security-dev-skills/SKILL.md 中的开发流程。
+# 查看支持的 agent
+./install.sh --list-agents
 ```
 
 ### 方式二：Agent 自动安装
@@ -84,14 +69,17 @@ cd ~/.security-dev-skills
 Agent 会自动：
 1. 克隆仓库到 `~/.security-dev-skills`
 2. 运行安装脚本
-3. 配置 MCP 服务器
-4. 加载 skill 配置
+3. 创建软链接到自己的 skill 目录
+4. 配置 MCP 服务器
 
 ## 安装后验证
 
 ```bash
 # 检查仓库是否克隆成功
 ls ~/.security-dev-skills/SKILL.md
+
+# 检查软链接（以 Claude Code 为例）
+ls -la ~/.claude/skills/security-dev-skills
 
 # 检查 MCP 配置（Claude Code）
 cat ~/.claude/settings.json | grep -A 3 "mcpServers"
