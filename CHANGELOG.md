@@ -7,6 +7,17 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-02
+
+### Added
+- `INSTALL.md` — 安装说明（供 agent 自动安装使用）
+- 更新 `README.md` 增加两种安装方式：
+  - 人类手动安装
+  - Agent 自动安装
+
+### Changed
+- 优化 README.md 结构，更清晰的安装指引
+
 ## [0.5.0] - 2026-06-02
 
 ### Added
