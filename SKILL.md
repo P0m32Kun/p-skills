@@ -217,8 +217,9 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 | [mattpocock/skills](https://github.com/mattpocock/skills) | 扁平 namespace、description 触发、渐进式披露 |
 | [gstack](https://github.com/garrytan/gstack) | 模板化、版本管理 |
 | [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) | 行为准则、防 LLM 错误 |
+| [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt) | ReflACT 流水线、skill 文档作为可训练状态、Validation Gate、Learning Rate 调度 |
 
-详见 `docs/best-practices.md`。
+详见 `docs/best-practices.md` 和 `docs/self-evolution-design.md`。
 
 ## 相关文档
 
@@ -230,5 +231,6 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 - `docs/tools-reference.md` — 跨 agent 工具等价表（适配层）
 - `docs/best-practices.md` — 优秀 skill 设计模式
 - `docs/analysis.md` — 竞品分析
+- `docs/self-evolution-design.md` — 自进化系统设计（基于 SkillOpt）
 - `.claude-plugin/README.md` — 多 harness plugin manifest 说明
 - `tests/triggering/README.md` — Skill 触发测试框架
