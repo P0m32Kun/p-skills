@@ -1,0 +1,95 @@
+---
+name: doc-validate
+description: >
+  Use when validating documentation consistency, checking doc accuracy,
+  or before PR submission. Use when user says "文档校验", "一致性检查",
+  "doc validate", "check docs".
+---
+
+# 文档一致性校验
+
+> PR 提交前校验文档一致性。
+
+## 前置条件
+
+- 文档已更新
+- 代码已变更
+
+## 核心原则
+
+1. **零过期文档** — 所有文档都是最新的
+2. **零无效引用** — 所有代码引用都是有效的
+3. **完整性** — 所有文档都有完整的 frontmatter
+
+## 流程
+
+### 1. 时间戳对比
+
+检查文档的 `last_updated` 时间是否在代码变更之后：
+
+```bash
+# 获取代码最后变更时间
+git log -1 --format="%ai" -- path/to/code
+
+# 获取文档最后更新时间
+grep "last_updated:" docs/api.md
+```
+
+### 2. 字段反向索引检查
+
+检查文档中引用的代码是否仍然存在：
+
+```bash
+# 检查文档中引用的函数是否存在
+grep -o "function_name" docs/api.md | while read func; do
+  if ! grep -r "function $func" src/; then
+    echo "WARNING: $func not found in code"
+  fi
+done
+```
+
+### 3. Frontmatter 完整性
+
+检查文档是否有完整的 frontmatter：
+
+```yaml
+---
+title: 文档标题
+last_updated: 2024-01-01
+author: 作者
+---
+```
+
+### 4. 输出校验报告
+
+```markdown
+## 文档校验报告
+
+### 校验时间
+[YYYY-MM-DD HH:MM]
+
+### 校验结果
+- **过期文档**：0 个
+- **无效引用**：0 个
+- **Frontmatter 缺失**：0 个
+
+### 详细检查
+- [ ] README.md — ✅ 最新
+- [ ] docs/api.md — ✅ 最新
+- [ ] docs/config.md — ⚠️ 需要更新
+
+### 建议
+- 更新 docs/config.md 的配置说明
+```
+
+## 完成标准
+
+- [ ] 零过期文档
+- [ ] 零无效代码引用
+- [ ] 所有文档 frontmatter 完整
+- [ ] 校验报告已输出
+
+## 参考
+
+- `docs/sync.md` — 文档同步
+- `workflow/develop.feature.md` — 完整开发流程

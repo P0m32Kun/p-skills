@@ -1,4 +1,4 @@
 installed=git,uv,semble,codegraph,node,docker
 missing_required=
 missing_optional=context7,playwright
-timestamp=1780380144
+timestamp=1780412995
