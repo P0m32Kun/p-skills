@@ -1,0 +1,10 @@
+{
+  "session_id": "test-001",
+  "started_at": "2026-06-03T16:19:23.358Z",
+  "tool_calls": {
+    "Edit": 1
+  },
+  "skill_triggers": [],
+  "total_calls": 1,
+  "last_updated": "2026-06-03T16:19:23.358Z"
+}
