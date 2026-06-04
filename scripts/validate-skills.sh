@@ -17,8 +17,8 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# 排除的目录（不需要 frontmatter 校验：模板、归档、分发 manifest、集成）
-EXCLUDE_DIRS="docs/templates docs/archive integrations .claude-plugin .codex-plugin .cursor-plugin .opencode tests"
+# 排除的目录（不需要 frontmatter 校验：模板、归档、分发 manifest、集成、rules）
+EXCLUDE_DIRS="docs/templates docs/archive integrations .claude-plugin .codex-plugin .cursor-plugin .opencode tests skills/claude-code/rules"
 
 # 排除的文件（不需要 frontmatter：仓库级 / 分发入口 / 适配层文档，不含 SKILL.md）
 EXCLUDE_FILES="README.md AGENTS.md CHANGELOG.md CONTEXT.md DESIGN.md DEPENDENCIES.md INSTALL.md tools-reference.md best-practices.md dependencies.md analysis.md"
