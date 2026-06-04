@@ -27,7 +27,7 @@ else
 fi
 ```
 
-`UPDATE_AVAILABLE:N` → `git pull`；`UP_TO_DATE` 或 `SKIP_UPDATE:*` → 跳过。
+`UPDATE_AVAILABLE:N` → `git pull --rebase`；`UP_TO_DATE` 或 `SKIP_UPDATE:*` → 跳过。
 
 ## 核心理念
 

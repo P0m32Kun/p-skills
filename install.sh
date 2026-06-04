@@ -289,7 +289,7 @@ install_skill_repo() {
     if [ -d "$SKILL_INSTALL_DIR" ]; then
         log_info "仓库已存在，更新中..."
         cd "$SKILL_INSTALL_DIR"
-        git pull
+        git pull --rebase
         log_success "更新成功"
     else
         log_info "克隆仓库..."
