@@ -3,7 +3,7 @@ name: test-strategy
 description: >
   Use when choosing test strategy, deciding test levels, or planning test
   approach. Use when user says "测试策略", "选择测试层级", "test strategy",
-  "what to test".
+  "what to test", "测试方案", "怎么测", "避免假实现".
 ---
 
 # 测试策略选择
@@ -22,11 +22,31 @@ description: >
 - 已经确定要写测试，需要具体编写 → 用 `tdd` 或 `e2e-write`
 - 只需要验证功能 → 用 `verify`
 
-> 根据变更类型选择合适的测试策略和层级。
+> 根据变更类型选择合适的测试策略和层级。本 skill 是 **Implement 阶段**的选层工具；验收信号来自 `openspec`，场景来自 `bdd`，由 `develop-feature` 编排。
+
+## 方法论栈（不重复造轮子）
+
+| 层 | Skill | 回答的问题 |
+|----|-------|-----------|
+| SDD | `openspec` | 构建什么？验收信号是什么？ |
+| BDD | `bdd` | 用户可观察的行为是什么？ |
+| TDD | `tdd` | 这段逻辑如何保证正确？ |
+| 选层 | **本 skill** | 这次改动写哪层测试？ |
+| E2E | `e2e-write` | 用户路径如何从浏览器验收？ |
+| 收口 | `verify` | 真实环境下是否真能用？ |
+
+## 变更类型 → 需要哪些层
+
+| 变更类型 | SDD | BDD 场景 | TDD | E2E |
+|----------|-----|----------|-----|-----|
+| 新功能 / 新 API / 新 UI | 是 | 是 | 是 | 用户路径是 |
+| 用户可见 bug | 简版 | 回归场景 | 先 failing test | 视影响 |
+| 纯重构（行为不变） | 否 | 沿用现有 | 保测试绿 | 否 |
+| 文案 / typo | 否 | 否 | 否 | 否 |
 
 ## 前置条件
 
-- 需求已完成设计
+- 需求已完成设计（或 openspec spec 已存在）
 - 明确变更类型和范围
 
 ## 核心原则
@@ -189,8 +209,19 @@ test('用户注册并登录', async ({ page }) => {
 | "测试策略文档太重" | 几句话就行，关键是显式决策 |
 | "覆盖率 100% 就好" | 覆盖率 ≠ 测试质量 |
 
+## 三道闸（防「代码写了、功能没实现」）
+
+| 闸 | 规则 |
+|----|------|
+| Spec 闸 | 无验收信号（REQ-x）不写实现 |
+| 行为闸 | 测试描述可观察行为，非实现细节；E2E 禁止在 test body 用 API 断言业务结果 |
+| 实现闸 | 核心逻辑先有 failing test，再写代码 |
+
 ## 参考
 
+- `skills/develop-feature/` — 全流程编排
+- `skills/openspec/`、`skills/bdd/` — 验收与场景
 - `skills/tdd/` — 测试驱动开发
 - `skills/e2e-write/` — E2E 测试编写
+- `skills/verify/` — 真实环境验收
 - [Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) — 测试金字塔

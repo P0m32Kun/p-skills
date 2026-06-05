@@ -41,6 +41,12 @@ description: >
 
 ### 1. 阅读项目 E2E 测试约定
 
+先查项目是否有 `docs/conventions/testing.md` 或同类约定；通用硬性规则：
+
+- **UI 断言业务结果** — `test()` body 内禁止用 `fetch` / `page.request` 断言「扫到了什么、保存了什么」
+- **API 仅用于** setup / teardown / 长异步任务进度轮询（例外须在文件头说明原因）
+- **文件头注释** — 标明测试层级、UI 断言点、API 用途、关联 BDD 场景 ID
+
 ```bash
 # 查看现有测试结构
 find . -name "*.spec.ts" -o -name "*.test.ts" | head -20

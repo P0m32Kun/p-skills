@@ -135,12 +135,16 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 
 ### 开发流程
 
+> 新功能 / 测试工作流 / 「避免代码写了功能没实现」→ 用 **`develop-feature`** 编排：
+> `openspec`（验收信号）→ `bdd`（场景）→ `test-strategy` + `tdd` → `e2e-write` → `verify`。
+> 不要单独重复写一套流程；各层细节在对应 skill 正文。
+
 | Skill | 路径 | 触发条件 |
 |-------|------|---------|
 | bootstrap | `skills/bootstrap/` | 会话开始 |
 | brainstorming | `skills/brainstorming/` | 设计讨论、方案探索、需求澄清 |
 | writing-plans | `skills/writing-plans/` | 编写实施计划、拆解任务 |
-| develop-feature | `skills/develop-feature/` | 新需求开发、完整开发流程 |
+| develop-feature | `skills/develop-feature/` | 新需求开发、完整开发流程、SDD/BDD/TDD 编排、测试工作流 |
 | fix-bug | `skills/fix-bug/` | 修复 bug、故障排查、hotfix |
 | code-review | `skills/code-review/` | 代码评审、检查修改、code review |
 | code-cleanup | `skills/code-cleanup/` | 清理死代码、删除未使用文件、重构 |

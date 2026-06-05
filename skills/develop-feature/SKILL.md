@@ -2,7 +2,7 @@
 name: develop-feature
 description: >
   Use when user says "新需求开发", "功能开发", "完整开发流程", "开发一个功能",
-  "我要开发一个", "帮我做一个新功能", "实现这个需求", "做一下这个功能",
+  "测试工作流", "SDD", "BDD", "TDD", "验收", "怎么测", "避免假实现",
   "new feature", "develop feature", "build feature".
 ---
 
@@ -37,9 +37,23 @@ description: >
 Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
    │          │          │           │          │         │          │
 brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
-               │
-          writing-plans
+               │          │                      │
+          openspec    test-strategy              │
+               │      e2e-write                   │
+              bdd                               │
+          writing-plans                         │
 ```
+
+**测试方法论嵌套**（Design→Implement→Verify 贯穿，不另起炉灶）：
+
+```
+SDD（openspec）→ 验收信号 REQ-x
+  └── BDD（bdd）→ 可观察场景 FT-/E2E-
+        └── TDD（tdd + test-strategy）→ unit / integration
+              └── E2E（e2e-write）+ verify → 真实环境收口
+```
+
+项目若有 `docs/conventions/testing*.md` 或场景注册表，Implement/Verify 阶段必读；无则按本流程通用规则执行。
 
 ## 阶段详情
 
@@ -63,48 +77,55 @@ brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
 - [ ] 调研报告已输出
 </HARD-GATE>
 
-### 阶段 2：Design（设计）
+### 阶段 2：Design（设计 + 验收对齐）
 
-**使用的 Skill**：`brainstorming`（继续）、`writing-plans`
+**使用的 Skill**：`openspec`（主）、`bdd`（场景）、`writing-plans`（拆解）
 
-**目标**：输出设计文档和实施计划
+**目标**：先对齐「构建什么」和「可观察行为」，再写 tasks
 
 **输入**：调研报告
 
-**输出**：设计文档 + 实施计划
+**输出**：proposal / spec（含 REQ-x 验收信号）/ tasks（每条挂 `验收: REQ-x`）+ BDD 场景登记
+
+**推荐顺序**：
+1. `openspec` Propose — 产出 spec 与 tasks，**每条需求必须有可勾选验收信号**
+2. `bdd` Formulation — 将 GWT 场景登记到项目验收文档（或保留在 spec.md）；分配场景 ID（`FT-*` / `E2E-*`）
+3. `writing-plans` — tasks 过大时再拆解执行顺序
 
 <HARD-GATE>
-**阻断条件**：无 spec 不进入 Implement
+**阻断条件**：无验收信号不进入 Implement
 
 **检查项**：
-- [ ] 设计文档已完成
-- [ ] 实施计划已编写
-- [ ] 用户已批准设计
+- [ ] spec 中每条 REQ 有验收信号（UI / API / 日志等可观测项）
+- [ ] BDD 场景已登记（文档或 spec 内 GWT）
+- [ ] tasks.md 每条任务挂 `验收: REQ-x`
+- [ ] 用户已批准设计（或等效确认）
 </HARD-GATE>
 
-### 阶段 3：Implement（编码）
+### 阶段 3：Implement（编码 + 测试驱动）
 
-**使用的 Skill**：`tdd` + `subagent-driven-development`（推荐）
+**使用的 Skill**：`test-strategy`（选层）→ `tdd`（垂直切片）→ `e2e-write`（用户流程变更时）
 
-**目标**：按实施计划编码，测试通过
+**目标**：按 tasks 红-绿-重构实现；**禁止先堆代码后补测**
 
-**输入**：实施计划
+**输入**：spec + tasks + BDD 场景
 
-**输出**：通过测试的代码
+**输出**：通过测试的代码 + 对应测试资产
 
 **编排方式**（按任务特征选择）：
-- 任务大多独立 → 用 `subagent-driven-development`（顺序）
-- 任务全部独立 → 用 `dispatching-parallel-agents`（并行）
-- 任务紧耦合 → 自己实现，严格遵循 `tdd`
+- 不确定测哪层 → 先 `test-strategy`
+- 每个 task → `tdd` 垂直切片（一个 failing test → 最小实现 → 重构）
+- 影响用户路径 → 同步或更新 E2E（`e2e-write`）；读项目 E2E 约定（若有）
+- 任务大多独立 → `subagent-driven-development`；全部独立 → `dispatching-parallel-agents`
 
 <HARD-GATE>
-**阻断条件**：编译/测试不通过不进入 Doc-Sync
+**阻断条件**：编译/测试不通过，或核心逻辑无测试覆盖，不进入 Doc-Sync
 
 **检查项**：
-- [ ] 所有任务已完成
+- [ ] 所有 tasks 已完成且对应验收信号有测试或 E2E 映射
 - [ ] 编译通过
-- [ ] 测试通过
-- [ ] 每个任务都通过 spec + quality review
+- [ ] unit/integration 测试通过（非仅 build/typecheck）
+- [ ] 用户可见流程有 E2E 或已记录的手工验收步骤
 </HARD-GATE>
 
 ### 阶段 4：Doc-Sync（文档同步）
@@ -129,9 +150,9 @@ brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
 
 **使用的 Skill**：`verify`
 
-**目标**：用户视角验证功能
+**目标**：在**真实/类生产环境**从用户视角验收；对照 BDD 场景与 REQ 验收信号逐项勾选
 
-**输入**：实现的代码 + 文档
+**输入**：实现的代码 + 文档 + BDD 场景表
 
 **输出**：验证报告
 
@@ -139,9 +160,10 @@ brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
 **阻断条件**：用户视角验证不通过不进入 Release
 
 **检查项**：
-- [ ] 用户验收条件已满足
-- [ ] 边界情况已测试
-- [ ] 错误处理已验证
+- [ ] spec 中所有验收信号已勾选
+- [ ] BDD 场景（FT-/E2E-）已自动化或手工验收
+- [ ] **build/typecheck  alone 不算完成** — 关键流程须在运行环境（Docker/ staging）实测
+- [ ] 边界情况与错误态已验证
 </HARD-GATE>
 
 ### 阶段 6：Release（发布）
@@ -216,9 +238,14 @@ brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
 | "先写代码再补 spec" | 违反铁律：无 spec 不进入 Implement |
 | "小改动不用走完整流程" | 流程就是为了防止"小改动"翻车 |
 | "测试通过就算 verify" | 测试通过 ≠ 用户验收 |
+| "build 绿就算做完" | build 不验证集成、UI、真实依赖 |
+| "代码写了很多应该能用" | 无验收信号 + 无 E2E = 假实现 |
 | "Doc-Sync 不重要" | 文档过期比没文档更糟 |
 
 ## 参考
 
-- 各阶段对应的 skill 文件
+- `skills/openspec/` — SDD / 验收信号
+- `skills/bdd/` — 场景登记
+- `skills/test-strategy/`、`skills/tdd/`、`skills/e2e-write/` — 测试实现
+- `skills/verify/` — 用户视角收口
 - `SKILL.md` — 体系总览
