@@ -36,6 +36,7 @@ description: >
 2. **最小实现** — 只写让测试通过的最少代码
 3. **逐步重构** — 测试通过后再优化代码
 4. **垂直切片** — 一个测试一个实现，不要横向扩展
+5. **测试隔离** — 每个测试必须自包含，不能互相影响或污染项目目录
 
 ## 流程
 
@@ -142,6 +143,121 @@ npm test -- --testPathPattern=login.test.ts
 - [ ] 实现是否最小化（GREEN）？
 - [ ] 重构后测试是否仍然通过？
 - [ ] 测试名称是否清晰？
+- [ ] 测试产物是否在隔离目录中（不污染项目）？
+- [ ] 测试结束后是否有残留文件/进程？
+
+## 测试隔离规则
+
+### 规则 1: 文件系统隔离
+
+**所有测试中的文件操作必须在临时目录中进行。**
+
+```go
+// ✅ Go: 使用 t.TempDir()
+func TestSomething(t *testing.T) {
+    dir := t.TempDir() // 测试结束自动清理
+    os.WriteFile(filepath.Join(dir, "test.txt"), []byte("data"), 0644)
+}
+
+// ❌ 不要使用项目目录
+func TestSomething(t *testing.T) {
+    os.WriteFile("./test.txt", []byte("data"), 0644) // 污染项目！
+}
+```
+
+```typescript
+// ✅ Node.js: 使用 tmpdir
+import { mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+const dir = mkdtempSync(join(tmpdir(), 'test-'));
+// 测试后清理
+
+// ❌ 不要写到项目根目录
+writeFileSync('./test-output.json', data);
+```
+
+### 规则 2: 外部进程隔离
+
+**测试中启动的外部进程必须使用绝对路径，工作目录必须在临时目录中。**
+
+```go
+// ✅ 使用 temp 目录作为工作目录
+func TestRunner(t *testing.T) {
+    workDir := t.TempDir()
+    cmd := exec.Command("git", "init", workDir)
+    cmd.Run()
+    
+    // 配置中使用绝对路径
+    cfg.WorktreesDir = t.TempDir() // 隔离的 worktree 目录
+}
+
+// ❌ 不要依赖 CWD
+func TestRunner(t *testing.T) {
+    cfg.WorktreesDir = "../worktrees" // 相对路径，泄漏到项目！
+}
+```
+
+### 规则 3: 路径传递用环境变量
+
+**测试脚本需要知道输出路径时，通过环境变量传递，不要依赖解析 stdin。**
+
+```go
+// ✅ 通过环境变量传递关键路径
+cmd.Env = append(os.Environ(), "OUTPUT_PATH="+outputPath)
+
+// ❌ 不要依赖脚本解析 stdin
+// stdin 传 prompt，脚本无法可靠提取路径
+```
+
+```bash
+#!/bin/sh
+# ✅ 脚本使用环境变量
+echo "result" > "$OUTPUT_PATH"
+
+# ❌ 不要从 stdin 解析路径（不可靠，跨平台问题）
+# PATH=$(grep -oP '...' | head -1)  # macOS 不支持 -P
+```
+
+### 规则 4: 跨平台兼容
+
+**测试脚本避免使用平台特定工具。**
+
+```bash
+# ❌ 不兼容 macOS
+grep -oP '(?<=pattern).*'     # BSD grep 不支持 -P
+sed -i 's/old/new/' file       # BSD sed 需要 -i ''
+
+# ✅ 跨平台兼容
+grep 'pattern' | sed 's/.*pattern//'  # 基础正则
+# 或用 Go/Python 代替 shell
+```
+
+### 规则 5: 验证无泄漏
+
+**每个测试套件运行后，验证没有文件/进程泄漏。**
+
+```go
+func TestSuite(t *testing.T) {
+    before := listFiles(projectDir)
+    
+    t.Run("TestCase", func(t *testing.T) {
+        // ... 测试逻辑
+    })
+    
+    after := listFiles(projectDir)
+    if !reflect.DeepEqual(before, after) {
+        t.Error("test leaked files into project directory")
+    }
+}
+```
+
+```bash
+# 运行测试后检查
+make test
+git status --short  # 应该没有新增文件
+```
 
 ## 好测试 vs 坏测试
 
@@ -227,6 +343,10 @@ const service = new UserService(mockDb as any);
 - ✗ 过度 Mock，测试变成实现的镜像
 - ✗ 测试不运行就提交
 - ✗ 重构时不运行测试
+- ✗ 测试写文件到项目目录（应用 `t.TempDir()`）
+- ✗ 测试使用相对路径配置工作目录（应用绝对路径）
+- ✗ 测试脚本用 `grep -P` 等平台特有命令（应用环境变量或基础正则）
+- ✗ 测试结束后不检查文件/进程泄漏
 
 ## 完成标准
 
@@ -235,6 +355,8 @@ const service = new UserService(mockDb as any);
 - [ ] 测试描述行为，不描述实现
 - [ ] Mock 只在系统边界
 - [ ] 所有测试通过
+- [ ] 测试产物全部在临时目录中（`git status` 无新增文件）
+- [ ] 测试脚本跨平台兼容（无 `grep -P` 等平台特有命令）
 
 ## Red Flags — STOP
 
@@ -262,6 +384,9 @@ const service = new UserService(mockDb as any);
 | "删代码太浪费" | 沉没成本谬论。保留未验证代码才是技术债 |
 | "TDD 太教条" | TDD 就是务实：bug 在 commit 前发现比 commit 后快 |
 | "保留当参考" | 你会适配它，那就是测试后写。删除就是删除 |
+| "相对路径够用了" | 测试 CWD 不可控，相对路径必然泄漏 |
+| "临时文件不多，手动删" | 手动 = 遗漏。`t.TempDir()` = 自动 |
+| "脚本能跑就行" | macOS/Linux 工具差异会让你在 CI 上翻车 |
 
 ## 参考
 
