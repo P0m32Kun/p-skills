@@ -1,9 +1,9 @@
 ---
 name: writing-skills
 description: >
-  Use when creating a new skill, editing an existing skill, or improving skill
-  discoverability/triggering. Use when user says "写一个 skill", "新建 skill",
-  "创建一个技能", "writing skill", "create skill".
+  Use when creating, editing, or improving a skill.
+  Use when user says "写一个 skill", "新建 skill", "创建一个技能",
+  "writing skill", "create skill", "改进 skill", "改一下 skill".
 ---
 
 # Writing Skills — P-Skills 元技能

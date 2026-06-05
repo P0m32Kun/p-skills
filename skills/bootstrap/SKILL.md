@@ -8,6 +8,19 @@ description: >
 
 # Bootstrap — P-Skills 会话入口
 
+## Overview
+
+会话入口 skill，强制在每次对话开始时检查是否有适用的 skill。**任何响应之前，先检查 skill。**
+
+## When to Use
+
+- 每次会话开始时（自动触发）
+- 用户提出任何请求时，先检查是否有适用的 skill
+- 不确定是否有 skill 适用时（有 1% 可能性就要检查）
+
+**何时不用**：
+- 无（bootstrap 始终生效）
+
 > 本 skill 在每次会话开始时强制执行，确保所有 skill 能被正确发现和使用。
 
 <EXTREMELY-IMPORTANT>

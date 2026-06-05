@@ -8,6 +8,20 @@ description: >
 
 # 发布部署流程
 
+## Overview
+
+支持容器化（Docker）、npm、Python、二进制等场景的发布流程。可重复、可回滚、尽量自动化。
+
+## When to Use
+
+- 发布新版本（Docker 镜像、npm 包、pip 包、二进制）
+- 创建 Git tag 和 GitHub Release
+- 部署到生产环境
+
+**何时不用**：
+- 只是开发阶段，还没到发布环节
+- 只需要跑测试 → 用 `verify`
+
 > 支持容器化、npm、Python、二进制等场景的发布流程。
 
 ## 前置条件

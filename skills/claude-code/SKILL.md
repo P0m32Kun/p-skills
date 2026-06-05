@@ -7,6 +7,20 @@ description: >
 
 # Claude Code 优化模块
 
+## Overview
+
+Claude Code 专用增强层：3 个 hooks（上下文监控、质量门禁、skill 编辑追踪）、4 个 skills、3 个 rules。只在 Claude Code 环境中生效。
+
+## When to Use
+
+- 需要配置 Claude Code hooks
+- 需要安装或管理 Claude Code 优化模块
+- 使用 Claude Code 进行开发时（自动生效）
+
+**何时不用**：
+- 使用其他 coding agent（pi、Cursor、Codex 等）
+- 不需要 Claude Code 特有的优化
+
 > 专门为 Claude Code 设计的 hooks、rules 和 skills，提升开发效率和代码质量。
 
 ## 模块总览

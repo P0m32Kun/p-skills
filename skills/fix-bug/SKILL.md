@@ -8,6 +8,19 @@ description: >
 
 # 标准化 Bug 修复流程
 
+## Overview
+
+标准化 bug 修复流程：先诊断根因，再制定方案，然后实施修复、测试验证、提交 PR、代码审查、合并。**不分析根因不改代码，没有回归测试不合并。**
+
+## When to Use
+
+- 修复 bug、调试问题、排查错误、hotfix
+- 用户说"修复bug"、"fix bug"、"故障排查"、"hotfix"
+
+**何时不用**：
+- 新功能开发 → 用 `develop-feature`
+- 只需要讨论方案 → 用 `brainstorming`
+
 > 强制执行：原因分析→方案制定→计划编写→分支创建→实施→测试→PR→Review→合并 流程。
 
 ## 核心原则

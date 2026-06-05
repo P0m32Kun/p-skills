@@ -1,8 +1,6 @@
 ---
 name: develop-feature
 description: >
-  Use when developing a complete feature end-to-end, from initial idea through
-  research, design, implementation, documentation, verification, and release.
   Use when user says "新需求开发", "功能开发", "完整开发流程", "开发一个功能",
   "我要开发一个", "帮我做一个新功能", "实现这个需求", "做一下这个功能",
   "new feature", "develop feature", "build feature".
@@ -11,6 +9,21 @@ description: >
 # 完整需求开发流程
 
 > 本文档是需求开发的编排器，串联所有阶段和 skill。
+
+## Overview
+
+需求开发的编排器，串联 Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective 全流程。每个阶段有明确的完成标准和阻断条件，不能跳过。
+
+## When to Use
+
+- 用户提出新功能需求，需要从零开始开发
+- 需求涉及完整开发周期（调研→设计→编码→文档→验证→发布）
+- 需要协调多个 skill 的执行顺序
+
+**何时不用**：
+- 单纯修复 bug → 用 `fix-bug`
+- 只需要写测试 → 用 `tdd`
+- 只需要讨论方案 → 用 `brainstorming`
 
 ## 核心原则
 

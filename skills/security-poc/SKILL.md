@@ -8,6 +8,21 @@ description: >
 
 # PoC 编写与验证
 
+## Overview
+
+漏洞 PoC 编写与靶场验证流程。明确目标资产和漏洞类型 → 编写 PoC 脚本 → 靶场环境验证 → 输出验证报告。**只在授权范围内测试。**
+
+## When to Use
+
+- 编写 PoC（Proof of Concept）脚本
+- 验证漏洞是否存在
+- 在靶场环境验证安全漏洞
+- 用户说"编写 PoC"、"漏洞验证"
+
+**何时不用**：
+- 只需要调研安全工具 → 用 `security-research`
+- 只需要集成安全工具到 CI/CD → 用 `security-integrate`
+
 > 漏洞 PoC 编写与靶场验证流程。
 
 ## 前置条件

@@ -8,6 +8,21 @@ description: >
 
 # 安全工具集成
 
+## Overview
+
+将安全工具（Nuclei、Semgrep 等）集成到 CI/CD 流程中：了解工具输出格式 → 编写 Parser → 编写 Pipeline Tool → 集成测试 → 更新文档。
+
+## When to Use
+
+- 将安全工具集成到 CI/CD 流水线
+- 构建安全扫描 pipeline
+- 自动化安全检查
+- 用户说"集成安全工具"、"安全自动化"
+
+**何时不用**：
+- 只需要调研安全工具 → 用 `security-research`
+- 只需要编写 PoC → 用 `security-poc`
+
 > 将安全工具集成到开发流程中。
 
 ## 前置条件
