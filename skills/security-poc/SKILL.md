@@ -132,11 +132,9 @@ def main():
     if verify_vulnerability(target):
         print("[+] Vulnerability exists!")
 
-        if exploit_vulnerability(target):
-            print("[*] Exploiting...")
-            result = exploit_vulnerability(target)
-            if result:
-                print(f"[+] Exploit result: {result}")
+        result = exploit_vulnerability(target)
+        if result is not None:
+            print(f"[+] Exploit result: {result}")
 
         print(f"\n[+] Remediation:\n{remediation()}")
     else:
@@ -173,17 +171,24 @@ if __name__ == "__main__":
 
 ```bash
 # 示例：启动靶场（以 Vulhub 为例）
-cd /path/to/vulhub/<vulnerability-name>
+# 1. 克隆 Vulhub 仓库
+git clone https://github.com/vulhub/vulhub.git
+cd vulhub/<vulnerability-name>
+
+# 2. 启动靶场环境
 docker-compose up -d
 
-# 运行 PoC
+# 3. 确认靶场已启动
+docker-compose ps
+
+# 4. 运行 PoC（端口以 docker-compose 输出为准）
 python3 poc.py http://localhost:<port>
 
-# 清理
+# 5. 清理环境
 docker-compose down
 ```
 
-> 注意：靶场路径和端口按实际项目调整。
+> 注意：靶场路径和端口按实际项目调整。先确认靶场镜像拉取成功再运行 PoC。
 
 ### 4. 输出 PoC 脚本 + 验证报告
 
