@@ -122,6 +122,6 @@ git diff HEAD~1
 
 ## 参考
 
-- `docs/validate.md` — 文档一致性校验
-- `workflow/develop.feature.md` — 完整开发流程
+- `skills/doc-validate/` — 文档一致性校验
+- `skills/develop-feature/` — 完整开发流程
 - [Docs as Code](https://docs-as-code.com/) — 文档即代码

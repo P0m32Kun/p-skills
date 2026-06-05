@@ -552,8 +552,8 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
 
 ## 参考
 
-- `workflow/brainstorming.md` — 需求讨论（用于理解问题）
-- `workflow/writing-plans.md` — 实施计划编写
-- `testing/tdd.md` — 测试驱动开发
+- `skills/brainstorming/` — 需求讨论（用于理解问题）
+- `skills/writing-plans/` — 实施计划编写
+- `skills/tdd/` — 测试驱动开发
 - [5 Why 分析法](https://en.wikipedia.org/wiki/5_Whys) — 根因分析
 - [Google SRE](https://sre.google/sre-book/postmortem-culture/) — 事后回顾

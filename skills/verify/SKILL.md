@@ -140,6 +140,6 @@ test('用户登录验证', async ({ page }) => {
 
 ## 参考
 
-- `testing/e2e-write.md` — E2E 测试编写
-- `workflow/develop.feature.md` — 完整开发流程
+- `skills/e2e-write/` — E2E 测试编写
+- `skills/develop-feature/` — 完整开发流程
 - [Acceptance Testing](https://en.wikipedia.org/wiki/Acceptance_testing) — 验收测试

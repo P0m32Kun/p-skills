@@ -177,6 +177,6 @@ test('用户注册并登录', async ({ page }) => {
 
 ## 参考
 
-- `testing/tdd.md` — 测试驱动开发
-- `testing/e2e-write.md` — E2E 测试编写
+- `skills/tdd/` — 测试驱动开发
+- `skills/e2e-write/` — E2E 测试编写
 - [Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) — 测试金字塔

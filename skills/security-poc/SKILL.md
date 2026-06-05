@@ -80,9 +80,12 @@ def verify_vulnerability(target: str) -> bool:
             timeout=TIMEOUT
         )
 
-        # 验证结果
-        if "登录成功" in response.text or response.status_code == 200:
-            return True
+        # 验证结果 — 检查特定漏洞指标，不要仅凭 status_code == 200 判断
+        # 示例：检查是否绕过了认证（响应中包含特定标记）
+        if "登录成功" in response.text and response.status_code == 200:
+            # 进一步确认：检查是否返回了管理员页面内容
+            if "admin" in response.text.lower() or "dashboard" in response.text.lower():
+                return True
 
         return False
 
@@ -129,7 +132,7 @@ def main():
     if verify_vulnerability(target):
         print("[+] Vulnerability exists!")
 
-        if exploit_vulnerability:
+        if exploit_vulnerability(target):
             print("[*] Exploiting...")
             result = exploit_vulnerability(target)
             if result:
@@ -158,32 +161,29 @@ if __name__ == "__main__":
 
 ### 3. 靶场环境验证
 
-#### 使用 Vulhub
+> ⚠️ **法律前提**：PoC 只能在授权范围内测试。未经授权的测试 = 违法。
+
+#### 靶场搭建
+
+选择合适的靶场环境验证 PoC：
+
+- **[Vulhub](https://github.com/vulhub/vulhub)** — 漏洞靶场集合，按 CVE 分类
+- **[DVWA](https://github.com/digininja/DVWA)** — Web 漏洞靶场
+- **[OWASP Juice Shop](https://github.com/juice-shop/juice-shop)** — 现代 Web 应用靶场
 
 ```bash
-# 启动靶场
-cd vulhub/spring/CVE-2022-22947
+# 示例：启动靶场（以 Vulhub 为例）
+cd /path/to/vulhub/<vulnerability-name>
 docker-compose up -d
 
 # 运行 PoC
-python3 poc.py http://localhost:8080
+python3 poc.py http://localhost:<port>
 
 # 清理
 docker-compose down
 ```
 
-#### 使用 DVWA
-
-```bash
-# 启动 DVWA
-docker run -d -p 80:80 vulnerables/web-dvwa
-
-# 访问 http://localhost:80
-# 默认账号：admin/password
-
-# 运行 PoC
-python3 poc.py http://localhost:80
-```
+> 注意：靶场路径和端口按实际项目调整。
 
 ### 4. 输出 PoC 脚本 + 验证报告
 

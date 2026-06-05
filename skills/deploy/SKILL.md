@@ -55,7 +55,7 @@ git describe --tags --abbrev=0
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 COPY . .
 RUN npm run build
 
@@ -92,7 +92,7 @@ docker push ghcr.io/username/myapp:1.0.0
 ```markdown
 # Changelog
 
-## [1.0.0] - 2024-01-01
+## [1.0.0] - YYYY-MM-DD
 
 ### Added
 - 用户注册功能
@@ -115,7 +115,6 @@ git push origin v1.0.0
 # GitHub CLI 创建 Release
 gh release create v1.0.0 \
   --title "Release v1.0.0" \
-  --notes-file CHANGELOG.md \
   --generate-notes
 ```
 
@@ -205,6 +204,7 @@ python -m build
 pytest
 
 # 发布
+twine check dist/*
 twine upload dist/*
 ```
 
@@ -221,7 +221,7 @@ requires-python = ">=3.8"
 
 [build-system]
 requires = ["setuptools>=61.0"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 ```
 
 ### 场景 D：二进制发布
@@ -316,7 +316,7 @@ gh release create v1.0.0 --generate-notes
 
 ## 参考
 
-- `workflow/develop.feature.md` — 完整开发流程
+- `skills/develop-feature/` — 完整开发流程
 - [Semantic Versioning](https://semver.org/) — 语义化版本
 - [Keep a Changelog](https://keepachangelog.com/) — CHANGELOG 规范
 - [GoReleaser](https://goreleaser.com/) — Go 发布工具

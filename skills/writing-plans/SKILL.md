@@ -155,6 +155,6 @@ description: >
 
 ## 参考
 
-- `workflow/brainstorming.md` — 前置：需求讨论
-- `workflow/develop.feature.md` — 编排器：完整开发流程
+- `skills/brainstorming/` — 前置：需求讨论
+- `skills/develop-feature/` — 编排器：完整开发流程
 - [The Pragmatic Programmer](https://www.amazon.co.uk/Pragmatic-Programmer-Anniversary-Journey-Mastery/dp/B0833F1T3V) — 小步前进

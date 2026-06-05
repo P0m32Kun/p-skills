@@ -167,6 +167,6 @@ npx playwright show-report
 
 ## 参考
 
-- `testing/strategy.md` — 测试策略选择
+- `skills/test-strategy/` — 测试策略选择
 - [Playwright 官方文档](https://playwright.dev/) — E2E 测试框架
 - [Cypress 官方文档](https://docs.cypress.io/) — E2E 测试框架

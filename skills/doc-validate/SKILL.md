@@ -113,5 +113,5 @@ author: 作者
 
 ## 参考
 
-- `docs/sync.md` — 文档同步
-- `workflow/develop.feature.md` — 完整开发流程
+- `skills/doc-sync/` — 文档同步
+- `skills/develop-feature/` — 完整开发流程
