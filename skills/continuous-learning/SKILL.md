@@ -118,7 +118,7 @@ Observations (≥10) → Reflect → Propose → Validate → Apply → New Skil
 | Agent | 自动采集 | 机制 | 配置位置 |
 |-------|---------|------|---------|
 | Claude Code | ✅ | `settings.json` hooks | `~/.claude/settings.json` |
-| Codex | ✅ | `hooks.json` + config.toml | `~/.codex/hooks.json` |
+| Codex | ✅ | 内联 TOML `[hooks]` | `~/.codex/config.toml` |
 | Cursor | ✅ | `hooks.json`（扁平格式） | `~/.cursor/hooks.json` |
 | OpenCode | ✅ | TypeScript plugin | `~/.config/opencode/plugins/p-skills-learning.ts` |
 | 其他 | ❌ | 手动触发 | `learn` CLI |

@@ -91,26 +91,28 @@ uninstall() {
     info "Removed legacy hooks.json"
   fi
 
-  # Remove Codex hooks
-  local codex_hooks="${HOME}/.codex/hooks.json"
-  if [ -f "$codex_hooks" ]; then
-    if grep -q "p-skills" "$codex_hooks" 2>/dev/null; then
-      rm -f "$codex_hooks"
-      info "Removed Codex hooks: $codex_hooks"
-      # Remove hooks key from config.toml
-      local codex_config="${HOME}/.codex/config.toml"
-      if [ -f "$codex_config" ] && command -v node >/dev/null 2>&1; then
-        node -e "
-          const fs = require('fs');
-          const file = '${codex_config}';
-          let lines = fs.readFileSync(file, 'utf8').split('\n');
-          lines = lines.filter(l => !l.startsWith('hooks ='));
-          fs.writeFileSync(file, lines.join('\n'));
-          console.log('Removed hooks key from Codex config.toml');
-        "
-      fi
+  # Remove Codex hooks from config.toml
+  local codex_config="${HOME}/.codex/config.toml"
+  if [ -f "$codex_config" ] && command -v node >/dev/null 2>&1; then
+    if grep -q "\[hooks\]" "$codex_config" 2>/dev/null; then
+      node -e "
+        const fs = require('fs');
+        const file = '${codex_config}';
+        let content = fs.readFileSync(file, 'utf8');
+        // Remove [hooks] section
+        const hooksIdx = content.indexOf('\n[hooks]');
+        if (hooksIdx !== -1) {
+          content = content.substring(0, hooksIdx);
+        }
+        // Remove legacy hooks path
+        content = content.replace(/^hooks = \".*hooks\.json\".*\n?/gm, '');
+        fs.writeFileSync(file, content.trimEnd() + '\n');
+        console.log('Removed hooks from Codex config.toml');
+      "
     fi
   fi
+  # Clean up legacy hooks.json
+  rm -f "${HOME}/.codex/hooks.json"
 
   # Remove Cursor hooks (remove p-skills entries, keep others)
   local cursor_hooks="${HOME}/.cursor/hooks.json"
@@ -351,101 +353,64 @@ fi
 # ── Install hooks for Codex ──────────────────────────────────────────────────
 
 CODEX_DIR="${HOME}/.codex"
-CODEX_HOOKS_FILE="${CODEX_DIR}/hooks.json"
 CODEX_CONFIG_FILE="${CODEX_DIR}/config.toml"
 
-if [ -d "$CODEX_DIR" ]; then
+if [ -d "$CODEX_DIR" ] && [ -f "$CODEX_CONFIG_FILE" ]; then
   info "Detected Codex installation, installing hooks..."
 
-  # Write hooks.json for Codex (same format as Claude Code)
-  cat > "$CODEX_HOOKS_FILE" << CODEX_HOOKS_EOF
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/gateguard.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/config-protection.js" }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/gateguard.js" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/quality-gate.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/learning-observer.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/meta-skill-update.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-tracker.js" }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/learning-observer.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-tracker.js" }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/context-monitor.js" }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-recovery.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-learning.js" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-summary.js" },
-          { "type": "command", "command": "node ${SCRIPTS_DIR}/session-tracker.js" }
-        ]
-      }
-    ]
-  }
-}
-CODEX_HOOKS_EOF
+  # Remove old [hooks] section if present, then append new one
+  if command -v node >/dev/null 2>&1; then
+    node -e "
+      const fs = require('fs');
+      const file = '${CODEX_CONFIG_FILE}';
+      let content = fs.readFileSync(file, 'utf8');
 
-  info "Codex hooks written to: $CODEX_HOOKS_FILE"
+      // Remove existing [hooks] section and everything after it
+      const hooksIdx = content.indexOf('\n[hooks]');
+      if (hooksIdx !== -1) {
+        content = content.substring(0, hooksIdx);
+      }
 
-  # Add hooks key to config.toml if not already present
-  if [ -f "$CODEX_CONFIG_FILE" ]; then
-    if ! grep -q "^hooks" "$CODEX_CONFIG_FILE" 2>/dev/null; then
-      # Add hooks key after the first line
-      if command -v node >/dev/null 2>&1; then
-        node -e "
-          const fs = require('fs');
-          const file = '${CODEX_CONFIG_FILE}';
-          let content = fs.readFileSync(file, 'utf8');
-          if (!content.includes('hooks =')) {
-            content = 'hooks = \"${CODEX_HOOKS_FILE}\"\n' + content;
-            fs.writeFileSync(file, content);
-            console.log('Added hooks key to config.toml');
-          }
-        "
-      fi
-    else
-      info "Codex config.toml already has hooks key"
-    fi
+      // Remove legacy hooks.json path reference
+      content = content.replace(/^hooks = \".*hooks\.json\".*\n?/gm, '');
+
+      const scriptsDir = '${SCRIPTS_DIR}';
+      const hooks = \`
+
+[hooks]
+PreToolUse = [
+  {command = \"node \${scriptsDir}/gateguard.js\", matcher = \"Edit|Write|MultiEdit\"},
+  {command = \"node \${scriptsDir}/config-protection.js\", matcher = \"Edit|Write|MultiEdit\"},
+  {command = \"node \${scriptsDir}/gateguard.js\", matcher = \"Bash\"}
+]
+PostToolUse = [
+  {command = \"node \${scriptsDir}/quality-gate.js\", matcher = \"Edit|Write|MultiEdit\"},
+  {command = \"node \${scriptsDir}/learning-observer.js\", matcher = \"Edit|Write|MultiEdit|Bash\"},
+  {command = \"node \${scriptsDir}/meta-skill-update.js\", matcher = \"Edit|Write|MultiEdit\"},
+  {command = \"node \${scriptsDir}/session-tracker.js\", matcher = \"Edit|Write|MultiEdit|Bash\"},
+  {command = \"node \${scriptsDir}/context-monitor.js\"}
+]
+SessionStart = [
+  {command = \"node \${scriptsDir}/session-recovery.js\"},
+  {command = \"node \${scriptsDir}/session-learning.js\"}
+]
+Stop = [
+  {command = \"node \${scriptsDir}/session-summary.js\"},
+  {command = \"node \${scriptsDir}/session-tracker.js\"}
+]\`;
+
+      fs.writeFileSync(file, content.trimEnd() + hooks + '\n');
+      console.log('Hooks written to config.toml');
+    "
   fi
 
-  info "Codex hooks installed"
+  # Clean up legacy hooks.json
+  if [ -f "${CODEX_DIR}/hooks.json" ]; then
+    rm -f "${CODEX_DIR}/hooks.json"
+    info "Removed legacy hooks.json"
+  fi
+
+  info "Codex hooks installed in config.toml"
 else
   info "Codex not detected, skipping"
 fi
