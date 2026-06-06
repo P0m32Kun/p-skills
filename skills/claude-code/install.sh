@@ -94,16 +94,13 @@ uninstall() {
   # Remove Codex hooks from config.toml
   local codex_config="${HOME}/.codex/config.toml"
   if [ -f "$codex_config" ] && command -v node >/dev/null 2>&1; then
-    if grep -q "\[hooks\]" "$codex_config" 2>/dev/null; then
+    if grep -q "\[hooks\]\|\[\[hooks\." "$codex_config" 2>/dev/null; then
       node -e "
         const fs = require('fs');
         const file = '${codex_config}';
         let content = fs.readFileSync(file, 'utf8');
-        // Remove [hooks] section
-        const hooksIdx = content.indexOf('\n[hooks]');
-        if (hooksIdx !== -1) {
-          content = content.substring(0, hooksIdx);
-        }
+        // Remove [hooks] and [[hooks.*]] sections
+        content = content.replace(/\n\[{1,2}hooks[^\]]*\][\s\S]*$/, '');
         // Remove legacy hooks path
         content = content.replace(/^hooks = \".*hooks\.json\".*\n?/gm, '');
         fs.writeFileSync(file, content.trimEnd() + '\n');
@@ -365,11 +362,8 @@ if [ -d "$CODEX_DIR" ] && [ -f "$CODEX_CONFIG_FILE" ]; then
       const file = '${CODEX_CONFIG_FILE}';
       let content = fs.readFileSync(file, 'utf8');
 
-      // Remove existing [hooks] section and everything after it
-      const hooksIdx = content.indexOf('\n[hooks]');
-      if (hooksIdx !== -1) {
-        content = content.substring(0, hooksIdx);
-      }
+      // Remove existing [hooks] or [[hooks.*]] sections
+      content = content.replace(/\n\[{1,2}hooks[^\]]*\][\s\S]*$/, '');
 
       // Remove legacy hooks.json path reference
       content = content.replace(/^hooks = \".*hooks\.json\".*\n?/gm, '');
@@ -377,27 +371,49 @@ if [ -d "$CODEX_DIR" ] && [ -f "$CODEX_CONFIG_FILE" ]; then
       const scriptsDir = '${SCRIPTS_DIR}';
       const hooks = \`
 
-[hooks]
-PreToolUse = [
-  {command = \"node \${scriptsDir}/gateguard.js\", matcher = \"Edit|Write|MultiEdit\"},
-  {command = \"node \${scriptsDir}/config-protection.js\", matcher = \"Edit|Write|MultiEdit\"},
-  {command = \"node \${scriptsDir}/gateguard.js\", matcher = \"Bash\"}
-]
-PostToolUse = [
-  {command = \"node \${scriptsDir}/quality-gate.js\", matcher = \"Edit|Write|MultiEdit\"},
-  {command = \"node \${scriptsDir}/learning-observer.js\", matcher = \"Edit|Write|MultiEdit|Bash\"},
-  {command = \"node \${scriptsDir}/meta-skill-update.js\", matcher = \"Edit|Write|MultiEdit\"},
-  {command = \"node \${scriptsDir}/session-tracker.js\", matcher = \"Edit|Write|MultiEdit|Bash\"},
-  {command = \"node \${scriptsDir}/context-monitor.js\"}
-]
-SessionStart = [
-  {command = \"node \${scriptsDir}/session-recovery.js\"},
-  {command = \"node \${scriptsDir}/session-learning.js\"}
-]
-Stop = [
-  {command = \"node \${scriptsDir}/session-summary.js\"},
-  {command = \"node \${scriptsDir}/session-tracker.js\"}
-]\`;
+[[hooks.PreToolUse]]
+command = \"node \${scriptsDir}/gateguard.js\"
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PreToolUse]]
+command = \"node \${scriptsDir}/config-protection.js\"
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PreToolUse]]
+command = \"node \${scriptsDir}/gateguard.js\"
+matcher = \"Bash\"
+
+[[hooks.PostToolUse]]
+command = \"node \${scriptsDir}/quality-gate.js\"
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PostToolUse]]
+command = \"node \${scriptsDir}/learning-observer.js\"
+matcher = \"Edit|Write|MultiEdit|Bash\"
+
+[[hooks.PostToolUse]]
+command = \"node \${scriptsDir}/meta-skill-update.js\"
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PostToolUse]]
+command = \"node \${scriptsDir}/session-tracker.js\"
+matcher = \"Edit|Write|MultiEdit|Bash\"
+
+[[hooks.PostToolUse]]
+command = \"node \${scriptsDir}/context-monitor.js\"
+
+[[hooks.SessionStart]]
+command = \"node \${scriptsDir}/session-recovery.js\"
+
+[[hooks.SessionStart]]
+command = \"node \${scriptsDir}/session-learning.js\"
+
+[[hooks.Stop]]
+command = \"node \${scriptsDir}/session-summary.js\"
+
+[[hooks.Stop]]
+command = \"node \${scriptsDir}/session-tracker.js\`
+\`;
 
       fs.writeFileSync(file, content.trimEnd() + hooks + '\n');
       console.log('Hooks written to config.toml');
