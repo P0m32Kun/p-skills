@@ -371,47 +371,87 @@ if [ -d "$CODEX_DIR" ] && [ -f "$CODEX_CONFIG_FILE" ]; then
       const scriptsDir = '${SCRIPTS_DIR}';
       const hooks = \`
 
+# === PreToolUse ===
 [[hooks.PreToolUse]]
-command = \"node \${scriptsDir}/gateguard.js\"
 matcher = \"Edit|Write|MultiEdit\"
 
+[[hooks.PreToolUse.hooks]]
+type = \"command\"
+command = \"node \${scriptsDir}/gateguard.js\"
+
 [[hooks.PreToolUse]]
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PreToolUse.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/config-protection.js\"
-matcher = \"Edit|Write|MultiEdit\"
 
 [[hooks.PreToolUse]]
-command = \"node \${scriptsDir}/gateguard.js\"
 matcher = \"Bash\"
 
+[[hooks.PreToolUse.hooks]]
+type = \"command\"
+command = \"node \${scriptsDir}/gateguard.js\"
+
+# === PostToolUse ===
 [[hooks.PostToolUse]]
+matcher = \"Edit|Write|MultiEdit\"
+
+[[hooks.PostToolUse.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/quality-gate.js\"
-matcher = \"Edit|Write|MultiEdit\"
 
 [[hooks.PostToolUse]]
+matcher = \"Edit|Write|MultiEdit|Bash\"
+
+[[hooks.PostToolUse.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/learning-observer.js\"
-matcher = \"Edit|Write|MultiEdit|Bash\"
 
 [[hooks.PostToolUse]]
-command = \"node \${scriptsDir}/meta-skill-update.js\"
 matcher = \"Edit|Write|MultiEdit\"
 
-[[hooks.PostToolUse]]
-command = \"node \${scriptsDir}/session-tracker.js\"
-matcher = \"Edit|Write|MultiEdit|Bash\"
+[[hooks.PostToolUse.hooks]]
+type = \"command\"
+command = \"node \${scriptsDir}/meta-skill-update.js\"
 
 [[hooks.PostToolUse]]
+matcher = \"Edit|Write|MultiEdit|Bash\"
+
+[[hooks.PostToolUse.hooks]]
+type = \"command\"
+command = \"node \${scriptsDir}/session-tracker.js\"
+
+[[hooks.PostToolUse]]
+
+[[hooks.PostToolUse.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/context-monitor.js\"
 
+# === SessionStart ===
 [[hooks.SessionStart]]
+
+[[hooks.SessionStart.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/session-recovery.js\"
 
 [[hooks.SessionStart]]
+
+[[hooks.SessionStart.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/session-learning.js\"
 
+# === Stop ===
 [[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/session-summary.js\"
 
 [[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = \"command\"
 command = \"node \${scriptsDir}/session-tracker.js\`
 \`;
 
@@ -632,7 +672,7 @@ echo ""
 echo "  Agents:"
 echo "    Claude Code: hooks merged into ~/.claude/settings.json"
 if [ -d "$CODEX_DIR" ]; then
-  echo "    Codex:       hooks written to ~/.codex/hooks.json"
+  echo "    Codex:       hooks written to ~/.codex/config.toml"
 fi
 if [ -d "$CURSOR_DIR" ]; then
   echo "    Cursor:      hooks merged into ~/.cursor/hooks.json"
