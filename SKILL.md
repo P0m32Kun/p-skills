@@ -38,6 +38,18 @@ fi
 5. **通用优先** — 覆盖通用开发流程，安全作为专项模块
 6. **最小 frontmatter** — 只用 `name` + `description`，让 description 承担触发职责
 
+## Skill 分层
+
+> **skills 是可执行行为单元；orchestrator skill 是 workflow；`docs/workflows/` 是说明书，不是执行入口。**
+
+| 类型 | 位置 | 示例 |
+|------|------|------|
+| 阶段 skill | `skills/<name>/SKILL.md` | `openspec`、`tdd`、`verify` |
+| Orchestrator skill（workflow） | `skills/<name>/SKILL.md` | `develop-feature`、`fix-bug`、`deploy` |
+| 流程说明书（人类） | `docs/workflows/` | 流程图、总览、旧路径映射 |
+
+Agent **只从 `skills/` 加载**；不要新建 `workflows/` 或 `prompts/` 作为平行指挥入口。
+
 ## 开发流程
 
 ```
@@ -135,17 +147,17 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 
 ### 开发流程
 
-> 新功能 / 测试工作流 / 「避免代码写了功能没实现」→ 用 **`develop-feature`** 编排：
+> 新功能 / 测试工作流 / 「避免代码写了功能没实现」→ 用 **`develop-feature`**（Orchestrator）编排：
 > `openspec`（验收信号）→ `bdd`（场景）→ `test-strategy` + `tdd` → `e2e-write` → `verify`。
-> 不要单独重复写一套流程；各层细节在对应 skill 正文。
+> 不要单独重复写一套流程；各层细节在对应 skill 正文。人类可读总览见 `docs/workflows/`。
 
-| Skill | 路径 | 触发条件 |
-|-------|------|---------|
-| bootstrap | `skills/bootstrap/` | 会话开始 |
-| brainstorming | `skills/brainstorming/` | 设计讨论、方案探索、需求澄清 |
-| writing-plans | `skills/writing-plans/` | 编写实施计划、拆解任务 |
-| develop-feature | `skills/develop-feature/` | 新需求开发、完整开发流程、SDD/BDD/TDD 编排、测试工作流 |
-| fix-bug | `skills/fix-bug/` | 修复 bug、故障排查、hotfix |
+| Skill | 类型 | 路径 | 触发条件 |
+|-------|------|------|---------|
+| bootstrap | 入口 | `skills/bootstrap/` | 会话开始 |
+| brainstorming | 阶段 | `skills/brainstorming/` | 设计讨论、方案探索、需求澄清 |
+| writing-plans | 阶段 | `skills/writing-plans/` | 编写实施计划、拆解任务 |
+| develop-feature | **Orchestrator** | `skills/develop-feature/` | 新需求开发、完整开发流程、SDD/BDD/TDD 编排、测试工作流 |
+| fix-bug | **Orchestrator** | `skills/fix-bug/` | 修复 bug、故障排查、hotfix |
 | code-review | `skills/code-review/` | 代码评审、检查修改、code review |
 | code-cleanup | `skills/code-cleanup/` | 清理死代码、删除未使用文件、重构 |
 | retrospective | `skills/retrospective/` | 回顾总结、复盘 |
@@ -178,15 +190,16 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 
 ### 发布
 
-| Skill | 路径 | 触发条件 |
-|-------|------|---------|
-| deploy | `skills/deploy/` | 发布部署、版本发布、Docker/npm/pip |
+| Skill | 类型 | 路径 | 触发条件 |
+|-------|------|------|---------|
+| deploy | **Orchestrator** | `skills/deploy/` | 发布部署、版本发布、Docker/npm/pip |
 
 ### 元技能
 
 | Skill | 路径 | 触发条件 |
 |-------|------|---------|
 | writing-skills | `skills/writing-skills/` | 创建/编辑/改进 skill |
+| continuous-learning | `skills/continuous-learning/` | 查看学习数据、触发反思、evolve、learn status |
 
 ### Subagent 编排
 
@@ -233,6 +246,7 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 - `CONTEXT.md` — 领域知识与术语表
 - `CHANGELOG.md` — 变更日志
 - `docs/tools-reference.md` — 跨 agent 工具等价表（适配层）
+- `docs/workflows/` — 人类可读的流程总览（**非 Agent 执行入口**）
 - `docs/best-practices.md` — 优秀 skill 设计模式
 - `docs/analysis.md` — 竞品分析
 - `docs/self-evolution-design.md` — 自进化系统设计（基于 SkillOpt）

@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+#
+# learn — P-Skills 自进化系统 CLI
+#
+# 用法:
+#   learn status              查看学习数据概况
+#   learn reflect [project]   触发反思（轻量分析）
+#   learn train [project]     触发完整训练循环
+#   learn patterns [project]  查看已发现的模式
+#   learn clear [project]     清除学习数据
+#
+set -euo pipefail
+
+P_SKILLS_DIR="${HOME}/.p-skills"
+LEARNING_DIR="${P_SKILLS_DIR}/learning"
+SCRIPTS_DIR="${P_SKILLS_DIR}/skills/claude-code/hooks/scripts"
+
+# ── 工具函数 ──────────────────────────────────────────────────────────────────
+
+get_latest_project() {
+  if [ ! -d "$LEARNING_DIR/projects" ]; then
+    echo ""
+    return
+  fi
+  # 返回最近修改的 project 目录
+  ls -dt "$LEARNING_DIR/projects"/*/ 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo ""
+}
+
+resolve_project() {
+  local project="${1:-}"
+  if [ -z "$project" ]; then
+    project=$(get_latest_project)
+  fi
+  if [ -z "$project" ]; then
+    echo "❌ 未找到项目数据。请先使用 agent 工作几个 session。" >&2
+    exit 1
+  fi
+  echo "$project"
+}
+
+# ── 命令 ──────────────────────────────────────────────────────────────────────
+
+cmd_status() {
+  echo "📊 P-Skills 自进化系统状态"
+  echo ""
+
+  if [ ! -d "$LEARNING_DIR/projects" ]; then
+    echo "  暂无学习数据"
+    return
+  fi
+
+  local total_obs=0
+  local total_sessions=0
+
+  for project_dir in "$LEARNING_DIR/projects"/*/; do
+    [ -d "$project_dir" ] || continue
+    local pid
+    pid=$(basename "$project_dir")
+
+    local obs_file="$project_dir/observations.jsonl"
+    local obs_count=0
+    [ -f "$obs_file" ] && obs_count=$(wc -l < "$obs_file" | tr -d ' ')
+
+    local session_count=0
+    [ -d "$project_dir/sessions" ] && session_count=$(ls "$project_dir/sessions"/*.json 2>/dev/null | wc -l | tr -d ' ')
+
+    local epoch=0
+    [ -f "$project_dir/training_state.json" ] && epoch=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$project_dir/training_state.json','utf8')).epoch || 0)" 2>/dev/null || echo 0)
+
+    local instinct_count=0
+    [ -d "$project_dir/instincts" ] && instinct_count=$(ls "$project_dir/instincts"/*.md 2>/dev/null | wc -l | tr -d ' ')
+
+    echo "  项目: $pid"
+    echo "    观察数据: $obs_count 条"
+    echo "    Sessions: $session_count 个"
+    echo "    训练轮次: $epoch"
+    echo "    Instincts: $instinct_count 个"
+    echo ""
+
+    total_obs=$((total_obs + obs_count))
+    total_sessions=$((total_sessions + session_count))
+  done
+
+  echo "  合计: $total_obs 条观察, $total_sessions 个 sessions"
+
+  # 检查 meta-observations
+  local meta_count=0
+  [ -f "$LEARNING_DIR/meta-observations.jsonl" ] && meta_count=$(wc -l < "$LEARNING_DIR/meta-observations.jsonl" | tr -d ' ')
+  echo "  Skill 编辑记录: $meta_count 条"
+}
+
+cmd_reflect() {
+  local project
+  project=$(resolve_project "${1:-}")
+  echo "🔍 反思分析项目: $project"
+  echo ""
+
+  node "$SCRIPTS_DIR/learning-evolve.js" --project "$project"
+  echo ""
+
+  # 显示生成的 instinct 文件
+  local instincts_dir="$LEARNING_DIR/projects/$project/instincts"
+  if [ -d "$instincts_dir" ] && [ "$(ls "$instincts_dir"/*.md 2>/dev/null)" ]; then
+    echo "📁 已生成的 Instincts:"
+    for f in "$instincts_dir"/*.md; do
+      [ -f "$f" ] || continue
+      local name
+      name=$(basename "$f" .md)
+      local confidence
+      confidence=$(grep 'confidence:' "$f" | head -1 | awk '{print $2}')
+      echo "  - $name (confidence: $confidence)"
+    done
+  else
+    echo "  暂无足够数据生成 instinct"
+  fi
+}
+
+cmd_train() {
+  local project
+  project=$(resolve_project "${1:-}")
+  echo "🏋️ 训练项目: $project"
+  echo ""
+
+  node "$SCRIPTS_DIR/evolution-train.js" --project "$project"
+}
+
+cmd_patterns() {
+  local project
+  project=$(resolve_project "${1:-}")
+  echo "📋 项目 $project 的已发现模式:"
+  echo ""
+
+  local obs_file="$LEARNING_DIR/projects/$project/observations.jsonl"
+  if [ ! -f "$obs_file" ]; then
+    echo "  暂无观察数据"
+    return
+  fi
+
+  # 用 node 做快速统计
+  node -e "
+    const fs = require('fs');
+    const lines = fs.readFileSync('$obs_file', 'utf8').trim().split('\n').filter(Boolean);
+    const obs = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+
+    const tools = {}, skills = {}, files = {};
+    for (const o of obs) {
+      if (o.tool) tools[o.tool] = (tools[o.tool] || 0) + 1;
+      if (o.skill_triggered) skills[o.skill_triggered] = (skills[o.skill_triggered] || 0) + 1;
+      if (o.file_ext) files[o.file_ext] = (files[o.file_ext] || 0) + 1;
+    }
+
+    console.log('  工具使用:');
+    Object.entries(tools).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => console.log('    ' + k + ': ' + v + ' 次'));
+
+    if (Object.keys(skills).length > 0) {
+      console.log('  Skill 触发:');
+      Object.entries(skills).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => console.log('    ' + k + ': ' + v + ' 次'));
+    }
+
+    if (Object.keys(files).length > 0) {
+      console.log('  文件类型:');
+      Object.entries(files).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => console.log('    ' + k + ': ' + v + ' 次'));
+    }
+  "
+
+  # 显示 instinct 文件
+  local instincts_dir="$LEARNING_DIR/projects/$project/instincts"
+  if [ -d "$instincts_dir" ] && [ "$(ls "$instincts_dir"/*.md 2>/dev/null)" ]; then
+    echo ""
+    echo "  Instincts:"
+    for f in "$instincts_dir"/*.md; do
+      [ -f "$f" ] || continue
+      local name
+      name=$(basename "$f" .md)
+      local trigger
+      trigger=$(grep 'trigger:' "$f" | head -1 | sed 's/trigger: "//;s/"//')
+      echo "    - $name: $trigger"
+    done
+  fi
+}
+
+cmd_clear() {
+  local project="${1:-}"
+  if [ -z "$project" ]; then
+    echo "用法: learn clear <project_id>"
+    echo "可用项目:"
+    ls "$LEARNING_DIR/projects/" 2>/dev/null || echo "  (无)"
+    return
+  fi
+
+  local project_dir="$LEARNING_DIR/projects/$project"
+  if [ ! -d "$project_dir" ]; then
+    echo "❌ 项目不存在: $project"
+    return
+  fi
+
+  echo "⚠️  即将清除项目 $project 的所有学习数据"
+  read -p "确认? (y/N) " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    rm -rf "$project_dir"
+    echo "✅ 已清除"
+  else
+    echo "取消"
+  fi
+}
+
+# ── 帮助 ──────────────────────────────────────────────────────────────────────
+
+cmd_help() {
+  cat << 'EOF'
+learn — P-Skills 自进化系统 CLI
+
+用法:
+  learn status              查看学习数据概况
+  learn reflect [project]   触发反思（生成 instinct 文件）
+  learn train [project]     触发完整训练循环（需要 ≥10 条观察）
+  learn patterns [project]  查看已发现的模式
+  learn clear [project]     清除学习数据
+  learn help                显示此帮助
+
+省略 project 时自动使用最近活跃的项目。
+
+环境变量:
+  P_SKILLS_LEARNING=off     禁用数据采集
+  P_SKILLS_DEBUG=1          开启调试输出
+EOF
+}
+
+# ── 主入口 ────────────────────────────────────────────────────────────────────
+
+case "${1:-help}" in
+  status)   cmd_status ;;
+  reflect)  cmd_reflect "${2:-}" ;;
+  train)    cmd_train "${2:-}" ;;
+  patterns) cmd_patterns "${2:-}" ;;
+  clear)    cmd_clear "${2:-}" ;;
+  help|--help|-h) cmd_help ;;
+  *)        echo "未知命令: $1"; cmd_help; exit 1 ;;
+esac

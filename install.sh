@@ -38,7 +38,6 @@ get_agent_skill_dir() {
         claude-code) echo "$HOME/.claude/skills/p-skills" ;;
         codex)       echo "$HOME/.codex/skills/p-skills" ;;
         cursor)      echo "$HOME/.cursor/skills/p-skills" ;;
-        opencode)    echo "$HOME/.opencode/skills/p-skills" ;;
         windsurf)    echo "$HOME/.windsurf/skills/p-skills" ;;
         aider)       echo "$HOME/.aider/skills/p-skills" ;;
         cline)       echo "$HOME/.cline/skills/p-skills" ;;
@@ -57,7 +56,7 @@ get_agent_config_file() {
         claude-code) echo "$HOME/.claude/CLAUDE.md" ;;
         codex)       echo "$HOME/.codex/AGENTS.md" ;;
         cursor)      echo "$HOME/.cursor/rules/p-skills.mdc" ;;
-        opencode)    echo "$HOME/.opencode/AGENTS.md" ;;
+        opencode)    echo "$HOME/.config/opencode/AGENTS.md" ;;
         windsurf)    echo "$HOME/.windsurf/rules" ;;
         aider)       echo "$HOME/.aider.conf.yml" ;;
         cline)       echo "$HOME/.cline/rules" ;;
@@ -76,7 +75,7 @@ list_agents() {
     echo "  claude-code    ~/.claude/skills/p-skills"
     echo "  codex          ~/.codex/skills/p-skills"
     echo "  cursor         ~/.cursor/skills/p-skills"
-    echo "  opencode       ~/.opencode/skills/p-skills"
+    echo "  opencode       ~/.config/opencode/plugins/ (plugin)"
     echo "  windsurf       ~/.windsurf/skills/p-skills"
     echo "  aider          ~/.aider/skills/p-skills"
     echo "  cline          ~/.cline/skills/p-skills"
@@ -121,8 +120,8 @@ create_symlink() {
     local skill_root=$(get_agent_skill_dir "$agent")
 
     if [ -z "$skill_root" ]; then
-        log_error "未知的 agent: $agent"
-        return 1
+        # Agent 不使用 skill 目录（如 OpenCode 使用 plugin）
+        return 0
     fi
 
     log_info "配置 $agent（扁平化链接到 $skill_root）..."
@@ -166,14 +165,25 @@ create_symlink() {
             # 指向别处：覆盖
             ln -sfn "$skill_dir" "$target"
         elif [ -e "$target" ]; then
-            log_warn "$agent: $target 已存在且不是软链，跳过"
-            skipped=$((skipped + 1))
-            continue
+            log_warn "$agent: $target 已存在且不是软链，替换为软链"
+            rm -rf "$target"
         else
             ln -s "$skill_dir" "$target"
         fi
         linked=$((linked + 1))
     done
+
+    # 链接 bin 目录（learn CLI 等工具）
+    local bin_target="$skill_root/bin"
+    if [ -L "$bin_target" ]; then
+        local cur
+        cur=$(readlink "$bin_target")
+        if [ "$cur" != "$SKILL_INSTALL_DIR/bin" ]; then
+            ln -sfn "$SKILL_INSTALL_DIR/bin" "$bin_target"
+        fi
+    elif [ ! -e "$bin_target" ]; then
+        ln -s "$SKILL_INSTALL_DIR/bin" "$bin_target"
+    fi
 
     log_success "$agent: 新建 $linked 条链接（$skipped 条已存在）"
 }
@@ -184,7 +194,7 @@ configure_agent_rules() {
     local config_file=$(get_agent_config_file "$agent")
 
     if [ -z "$config_file" ]; then
-        return 1
+        return 0
     fi
 
     # 确保目录存在
@@ -355,6 +365,17 @@ uninstall() {
                 log_success "删除 $agent: $entry"
             fi
         done
+
+        # 删除 bin 链接
+        local bin_link="$skill_root/bin"
+        if [ -L "$bin_link" ]; then
+            local bin_target
+            bin_target=$(readlink "$bin_link")
+            if [ "$bin_target" = "$SKILL_INSTALL_DIR/bin" ]; then
+                rm "$bin_link"
+                log_success "删除 $agent: $bin_link"
+            fi
+        fi
 
         # 删除旧版聚合链接 <skill_root>/p-skills → ~/.p-skills
         local old_aggregate="$skill_root/p-skills"

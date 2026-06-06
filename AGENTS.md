@@ -81,6 +81,7 @@ p-skills/
 │   ├── ... (20 个 skill 总计)
 │   └── writing-skills/SKILL.md
 ├── docs/
+│   ├── workflows/                ← 人类可读流程图（非 Agent 入口）
 │   ├── tools-reference.md        ← 跨 agent 工具等价表
 │   ├── best-practices.md
 │   └── archive/                  ← 历史文档（不影响当前流程）
@@ -162,6 +163,7 @@ p-skills 在以下 agent 上测试过（社区贡献）：
 
 - **不绑定任何 agent** — Skill 内容只用通用术语
 - **适配层分离** — 工具映射在 `docs/tools-reference.md`，不在 skill 里
+- **Workflow = Orchestrator skill** — Agent 可执行的流程在 `skills/`（如 `develop-feature`）；`docs/workflows/` 仅人类可读
 - **分发自如** — 通过 plugin manifest 可注册到各 marketplace
 - **可测试** — `tests/triggering/` 框架验证 description 是否让 agent 自动触发
 
