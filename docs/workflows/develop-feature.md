@@ -23,15 +23,38 @@
 ## 流程图
 
 ```
-Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
-   │          │          │           │          │         │          │
-brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
-               │          │                      │
-          openspec    test-strategy              │
-               │      e2e-write                   │
-              bdd                               │
-          writing-plans                         │
+Research → Design → Implement → Doc-Sync → Verify ──→ Release → Retrospective
+   │          │          │           │          │            ↑
+   │          │          │           │          │  通过 ─────┘
+   │          │          │           │          │
+   │          │          │           │          │  失败
+   │          │          │           │          ↓
+   │          │          │←──────────┘  回退 Implement（带原因）
+   │          │          │
+   │          │←─────────┘  连续 ≥3 次同一失败 → 重新 Design
+   │          │
+   │←─────────┘  Design 回退仍不解决 → 重新 Research
+   │
+brainstorming  openspec    test-strategy     verify    deploy    retrospective
+               │      e2e-write
+              bdd
+          writing-plans
 ```
+
+## Loop Engineering
+
+本 workflow 包含三层迭代循环（详见 `skills/iterative-refinement/SKILL.md`）：
+
+| Layer | 范围 | 实现位置 |
+|-------|------|---------|
+| Layer 1: Task Loop | 单任务 TDD 红绿循环 | `skills/tdd/` |
+| Layer 2: Stage Loop | 阶段内迭代（verify、fix-bug、subagent review） | `skills/verify/`、`skills/fix-bug/`、`skills/subagent-driven-development/` |
+| Layer 3: Workflow Loop | Verify 失败 → 回退 Implement → 再 Verify | 本 skill（`develop-feature`） |
+
+**核心规则**：
+- 每个 loop 必须有显式退出条件（成功 / 最大轮次 / 收益递减）
+- 每轮记录 what changed、what passed、what failed
+- 连续 N 轮无改善 → 停止并升级
 
 ## 何时不用本 orchestrator
 

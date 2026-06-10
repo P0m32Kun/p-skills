@@ -2,11 +2,16 @@
 
 > 人类可读流程图。Agent 执行时请加载 `skills/develop-feature/SKILL.md`，不要只读本页。
 
-## 主流程
+## 主流程（含 Loop Engineering）
 
 ```
-Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
+Research → Design → Implement → Doc-Sync → Verify ──→ Release → Retrospective
+                              ↑               │
+                              │    失败 ───────┘
+                              └────────────────┘
 ```
+
+开发流程不是纯线性——Verify 失败会回退到 Implement，连续失败可能回退到 Design/Research。详见 `skills/iterative-refinement/SKILL.md`。
 
 ```mermaid
 flowchart LR

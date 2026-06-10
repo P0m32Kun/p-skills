@@ -63,24 +63,31 @@ digraph when_to_use {
 digraph process {
     rankdir=TB;
     subgraph cluster_per_task {
-        label="Per Task";
+        label="Per Task（含 Review-Retry Loop）";
         dispatch [label="派 implementer subagent" shape=box];
         impl [label="subagent 实现、测试、提交、自检" shape=box];
         spec_review [label="派 spec reviewer subagent" shape=box];
         spec_ok [label="spec 合规？" shape=diamond];
+        spec_retry_count [label="spec retry ≤ 3？" shape=diamond];
         fix_spec [label="implementer 修 spec gap" shape=box];
         quality_review [label="派 code quality reviewer subagent" shape=box];
         quality_ok [label="质量通过？" shape=diamond];
+        quality_retry_count [label="quality retry ≤ 3？" shape=diamond];
         fix_quality [label="implementer 修质量问题" shape=box];
+        escalate [label="升级：人工介入 / 换策略" shape=box];
         complete [label="标记任务完成" shape=box];
 
         dispatch -> impl -> spec_review -> spec_ok;
-        spec_ok -> fix_spec [label="no"];
+        spec_ok -> spec_retry_count [label="no"];
+        spec_retry_count -> fix_spec [label="yes"];
         fix_spec -> spec_review;
+        spec_retry_count -> escalate [label="no, 3次未改善"];
         spec_ok -> quality_review [label="yes"];
         quality_review -> quality_ok;
-        quality_ok -> fix_quality [label="no"];
+        quality_ok -> quality_retry_count [label="no"];
+        quality_retry_count -> fix_quality [label="yes"];
         fix_quality -> quality_review;
+        quality_retry_count -> escalate [label="no, 3次未改善"];
         quality_ok -> complete [label="yes"];
     }
     complete -> "下一个任务";
@@ -123,6 +130,11 @@ Spec reviewer 检查：
 
 如果 spec gap：回到 implementer 修复，再次 review。
 
+**Review-Retry 退出条件**：
+- ✅ spec review 通过 → 进入 quality review
+- ❌ 连续 3 次 spec gap 未改善 → 升级：详细分析 + 求助 / 换 implementer 策略
+- 记录每次 retry 的 gap 变化，判断是否收敛
+
 ### Code Quality Reviewer Subagent
 
 **在 spec review 通过后派。** 不关心 spec，只关心代码质量。
@@ -138,6 +150,11 @@ Quality reviewer 检查：
 - 性能是否有明显问题
 
 如果质量问题：回到 implementer 修复，再次 review。
+
+**Review-Retry 退出条件**：
+- ✅ quality review 通过 → 标记任务完成
+- ❌ 连续 3 次同类质量问题未改善 → 升级：详细分析 + 求助 / 换策略
+- 记录每次 retry 的问题变化，判断是否收敛
 
 ## Subagent Prompt 模板
 
@@ -276,10 +293,25 @@ Quality reviewer 检查：
 - [ ] 所有提交符合规范
 - [ ] 最终运行 `verify` skill 做用户视角验收
 
+## Review-Retry Loop 状态追踪
+
+每个任务的 review-retry 状态：
+
+```markdown
+## 任务 [N] Review-Retry 状态
+- Spec review 轮次：X/3
+  - 第 1 轮 gap：[问题]
+  - 第 2 轮 gap：[问题]（与第 1 轮对比：改善/未变/退步）
+- Quality review 轮次：Y/3
+  - 第 1 轮问题：[问题]
+  - 第 2 轮问题：[问题]（与第 1 轮对比：改善/未变/退步）
+```
+
 ## References
 
 - `skills/writing-plans/` — 必须先有 plan
 - `skills/tdd/` — implementer 必须遵循
 - `skills/verify/` — 全部完成后执行
+- `skills/iterative-refinement/` — Loop Engineering 核心模式（本 skill 的 review-retry 是 Stage Loop 的变体）
 - `skills/dispatching-parallel-agents/` — 并行版本
 - [obra/superpowers: subagent-driven-development](https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development) — 灵感来源

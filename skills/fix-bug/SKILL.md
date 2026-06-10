@@ -33,9 +33,21 @@ description: >
 ## 流程总览
 
 ```
-Diagnose → Plan → Implement → Test → PR → Review → Merge
-    │         │         │         │      │       │       │
- 根因分析   制定方案   编码修复   测试验证  提交PR  代码审查  合并代码
+Diagnose → Plan → Implement → Test ──→ PR → Review → Merge
+    ↑         │         │         │
+    │         │         │         │  测试失败
+    │         │         │         ↓
+    │         │         │     [诊断迭代循环]
+    │         │         │         │
+    │         │         │←────────┘  修复后重测
+    │         │         │
+    │         │←────────┘  连续 ≥3 次测试失败
+    │         │             重新审视修复方案
+    │         │
+    │←────────┘  方案调整后仍失败
+    │             重新诊断根因
+    │
+ 根因分析   制定方案   编码修复   测试验证
 ```
 
 ## 阶段详情
@@ -230,7 +242,7 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
 
 ---
 
-### 阶段 4：Test（测试）
+### 阶段 4：Test（测试 + 诊断迭代循环）
 
 **目标**：验证修复的正确性和完整性
 
@@ -270,6 +282,42 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
    - 测试边界情况
    - 确认用户体验正常
 
+**诊断迭代循环**：
+
+测试失败时，不要直接放弃或盲目重试，进入迭代修复：
+
+```
+测试失败 → 分析失败原因 → 定位问题 → 修复 → 重新运行测试
+  ↑                                            │
+  └────────────────────────────────────────────┘
+```
+
+**循环规则**：
+1. 记录本轮失败的测试和错误信息
+2. 分析：是修复不完整、引入新问题、还是测试本身有问题？
+3. 精确定位问题代码（不要猜测）
+4. 最小化修复（不要扩大变更范围）
+5. 重新运行**所有**相关测试（回归）
+
+**退出条件**：
+- ✅ 所有测试通过 → 进入 PR
+- ❌ 连续 3 轮同一测试失败 → 回退 Plan，重新审视修复方案
+- ❌ 方案调整后仍失败 → 回退 Diagnose，重新分析根因
+- ❌ 总轮次超过 5 → 强制暂停，人工介入
+
+**状态追踪**：
+
+```markdown
+## 测试迭代状态
+- 当前轮次：N/5
+- 复现测试：✅/❌
+- 单元测试：X/Y 通过
+- 集成测试：X/Y 通过
+- 回归测试：X/Y 通过
+- 连续同一失败轮次：M/3
+- 本轮修复：[修复了什么]
+```
+
 **输出格式**：
 ```markdown
 ## 测试报告
@@ -279,6 +327,10 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
 - 单元测试：✅ 通过 (X/X)
 - 集成测试：✅ 通过 (X/X)
 - 回归测试：✅ 通过 (X/X)
+
+### 迭代记录
+- 总轮次：N
+- 关键修复：[每轮做了什么]
 
 ### 手动验证
 - [ ] 按复现步骤验证通过
@@ -291,6 +343,8 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
 - ✗ 跳过手动验证
 - ✗ 不测试边界情况
 - ✗ 测试失败但强行继续
+- ✗ 盲目重试不分析原因
+- ✗ 每轮做同样的事期望不同结果
 
 ---
 
@@ -568,5 +622,6 @@ Diagnose → Plan → Implement → Test → PR → Review → Merge
 - `skills/brainstorming/` — 需求讨论（用于理解问题）
 - `skills/writing-plans/` — 实施计划编写
 - `skills/tdd/` — 测试驱动开发
+- `skills/iterative-refinement/` — Loop Engineering 核心模式（本 skill 的诊断迭代是 Stage Loop 的变体）
 - [5 Why 分析法](https://en.wikipedia.org/wiki/5_Whys) — 根因分析
 - [Google SRE](https://sre.google/sre-book/postmortem-culture/) — 事后回顾

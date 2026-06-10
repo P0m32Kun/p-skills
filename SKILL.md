@@ -70,6 +70,25 @@ Research → Design → Implement → Doc-Sync → Verify → Release → Retros
 
 允许：回退（Verify → Implement）、小需求合并（Research + Design）。
 
+### Loop Engineering（迭代精炼）
+
+开发流程不是纯线性，而是包含三层迭代循环：
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Layer 3: Workflow Loop（develop-feature 回退机制）    │
+│  Verify 失败 → 回退 Implement → 再 Verify            │
+├─────────────────────────────────────────────────────┤
+│  Layer 2: Stage Loop（verify / fix-bug 内部迭代）     │
+│  执行验证 → 分析失败 → 修复 → 再验证                   │
+├─────────────────────────────────────────────────────┤
+│  Layer 1: Task Loop（tdd 红绿循环 + 自我反思）         │
+│  RED → GREEN → REFACTOR → 质量自检 → 下一个           │
+└─────────────────────────────────────────────────────┘
+```
+
+核心模式见 `skills/iterative-refinement/SKILL.md`，各 layer 的实现分布在对应 skill 中。
+
 ## Skill 文件格式
 
 ### Frontmatter（最小化规范）
@@ -198,6 +217,7 @@ description: Use when fixing bugs, debugging issues, or troubleshooting errors. 
 
 | Skill | 路径 | 触发条件 |
 |-------|------|---------|
+| iterative-refinement | `skills/iterative-refinement/` | 迭代优化、循环改进、loop until、反复调试、反复修改 |
 | writing-skills | `skills/writing-skills/` | 创建/编辑/改进 skill |
 | continuous-learning | `skills/continuous-learning/` | 查看学习数据、触发反思、evolve、learn status |
 

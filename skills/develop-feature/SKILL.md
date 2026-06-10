@@ -8,7 +8,25 @@ description: >
 
 # 完整需求开发流程
 
-> 本文档是需求开发的编排器，串联所有阶段和 skill。
+## Skill 类型：Orchestrator（Workflow）
+
+> **本 skill 是 workflow 的唯一 Agent 执行入口**——不是 `docs/workflows/` 下的说明书。  
+> 人类可读流程图见 `docs/workflows/develop-feature.md` 与 `docs/workflows/lifecycle.md`。
+
+Orchestrator 职责：定义阶段顺序、阻断条件、回退规则；**各阶段具体做法加载对应阶段 skill**，不在此重复。
+
+### 引用的阶段 skill
+
+| 阶段 | Skill |
+|------|-------|
+| Research | `brainstorming` |
+| Design | `openspec`（主）、`bdd`、`writing-plans` |
+| Implement | `test-strategy` → `tdd` → `e2e-write` |
+| Implement（多任务） | `subagent-driven-development`、`dispatching-parallel-agents` |
+| Doc-Sync | `doc-sync` |
+| Verify | `verify` |
+| Release | `deploy` |
+| Retrospective | `retrospective` |
 
 ## Overview
 
@@ -34,14 +52,29 @@ description: >
 ## 流程总览
 
 ```
-Research → Design → Implement → Doc-Sync → Verify → Release → Retrospective
-   │          │          │           │          │         │          │
-brainstorming  │       tdd       doc-sync    verify    deploy    retrospective
-               │          │                      │
-          openspec    test-strategy              │
-               │      e2e-write                   │
-              bdd                               │
-          writing-plans                         │
+Research → Design → Implement → Doc-Sync → Verify ──→ Release → Retrospective
+   │          │          │           │          │            ↑
+   │          │          │           │          │  通过 ─────┘
+   │          │          │           │          │
+   │          │          │           │          │  失败（带原因）
+   │          │          │           │          ↓
+   │          │          │           │     [迭代验证循环]
+   │          │          │           │          │
+   │          │          │           │     连续失败 ≥3
+   │          │          │           │          │
+   │          │          │←──────────┘  回退 Implement
+   │          │          │             （带失败原因）
+   │          │          │
+   │          │←─────────┘  同一 Verify 失败点 ≥3 次回退
+   │          │             重新审视 Design
+   │          │
+   │←─────────┘  Design 回退仍不解决
+   │             重新 Research
+   │
+brainstorming  openspec    test-strategy     verify    deploy    retrospective
+               │      e2e-write
+              bdd
+          writing-plans
 ```
 
 **测试方法论嵌套**（Design→Implement→Verify 贯穿，不另起炉灶）：
@@ -146,9 +179,9 @@ SDD（openspec）→ 验收信号 REQ-x
 
 纯内部实现可跳过此阶段。
 
-### 阶段 5：Verify（验证）
+### 阶段 5：Verify（验证 + Workflow Loop）
 
-**使用的 Skill**：`verify`
+**使用的 Skill**：`verify`（含 Stage Loop 内部迭代）
 
 **目标**：在**真实/类生产环境**从用户视角验收；对照 BDD 场景与 REQ 验收信号逐项勾选
 
@@ -162,9 +195,40 @@ SDD（openspec）→ 验收信号 REQ-x
 **检查项**：
 - [ ] spec 中所有验收信号已勾选
 - [ ] BDD 场景（FT-/E2E-）已自动化或手工验收
-- [ ] **build/typecheck  alone 不算完成** — 关键流程须在运行环境（Docker/ staging）实测
+- [ ] **build/typecheck alone 不算完成** — 关键流程须在运行环境（Docker/ staging）实测
 - [ ] 边界情况与错误态已验证
 </HARD-GATE>
+
+**Workflow Loop — Verify 失败时的回退机制**：
+
+```
+Verify 失败 → 带失败原因回退 Implement → 修复 → 重新 Verify
+                                            ↑           │
+                                            └───────────┘
+```
+
+| 失败模式 | 回退目标 | 说明 |
+|----------|---------|------|
+| 实现不符合验收信号 | Implement | 代码逻辑问题，修复实现 |
+| 测试覆盖不足 | Implement | 补充测试后重新验证 |
+| 连续 ≥3 次同一 Verify 失败点回退 | Design | 实现可能方向错误，审视 spec |
+| Design 回退后仍不解决 | Research | 需求理解可能有误，重新调研 |
+
+**回退时必须传递**：
+1. 失败的验收条件（哪些 REQ-x 没过）
+2. 失败原因分析（为什么没过）
+3. 已尝试的修复（避免重复）
+
+**状态追踪**：
+
+```markdown
+## Workflow Loop 状态
+- 当前阶段：Verify
+- 回退次数：N/5
+- 连续同一失败点回退：M/3
+- 上次回退原因：[原因]
+- 本轮改善：[从上次回退后改善了什么]
+```
 
 ### 阶段 6：Release（发布）
 
@@ -247,5 +311,6 @@ SDD（openspec）→ 验收信号 REQ-x
 - `skills/openspec/` — SDD / 验收信号
 - `skills/bdd/` — 场景登记
 - `skills/test-strategy/`、`skills/tdd/`、`skills/e2e-write/` — 测试实现
-- `skills/verify/` — 用户视角收口
+- `skills/verify/` — 用户视角收口（含 Stage Loop）
+- `skills/iterative-refinement/` — Loop Engineering 核心模式（本 skill 是 Workflow Loop 的典型实现）
 - `SKILL.md` — 体系总览
